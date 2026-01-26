@@ -73,21 +73,23 @@ get_conduit_stats() {
         fi
     fi
     
-    # Fallback: Try to parse from log file if it exists
-    if [ -f "/tmp/conduit.log" ]; then
-        local log_line=$(grep "\[STATS\]" /tmp/conduit.log 2>/dev/null | tail -1)
-        if [ -n "$log_line" ]; then
-            # Parse: [STATS] Connecting: X | Connected: Y | Up: ... | Down: ... | Uptime: ...
-            local conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p')
-            local up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
-            local down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
-            
-            if [ -n "$conn" ] && [ -n "$up" ] && [ -n "$down" ]; then
-                echo "${conn}|${up}|${down}"
-                return
+    # Fallback: Try to parse from log files
+    for log_file in "/tmp/conduit.log" "/tmp/conduit_dash.log" "$PROJECT_ROOT/data/conduit.log"; do
+        if [ -f "$log_file" ]; then
+            local log_line=$(grep "\[STATS\]" "$log_file" 2>/dev/null | tail -1)
+            if [ -n "$log_line" ]; then
+                # Parse: [STATS] Connecting: X | Connected: Y | Up: ... | Down: ... | Uptime: ...
+                local conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p')
+                local up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
+                local down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
+                
+                if [ -n "$conn" ]; then
+                    echo "${conn}|${up:-0B}|${down:-0B}"
+                    return
+                fi
             fi
         fi
-    fi
+    done
     
     # Default: no stats available yet
     echo "0|0B|0B"
@@ -181,6 +183,11 @@ view_dashboard() {
             UP=$(echo "$CONDUIT_STATS" | cut -d'|' -f2)
             DOWN=$(echo "$CONDUIT_STATS" | cut -d'|' -f3)
             
+            # Default values if empty
+            CONN=${CONN:-0}
+            UP=${UP:-0B}
+            DOWN=${DOWN:-0B}
+            
             # Get uptime
             UPTIME=$(get_uptime "$CONDUIT_PID")
             
@@ -221,17 +228,5 @@ view_dashboard() {
     done
 }
 
-# Check if conduit is running
-CONDUIT_PID=$(find_conduit_pid)
-if [ -z "$CONDUIT_PID" ]; then
-    echo -e "${YELLOW}⚠️  Conduit is not currently running.${NC}"
-    echo ""
-    echo "Start Conduit first, then run this dashboard:"
-    echo "  ./dist/conduit start --psiphon-config ./psiphon_config.json -v --stats-file"
-    echo ""
-    echo "Or start it in another terminal and run this dashboard."
-    echo ""
-    read -p "Press Enter to open dashboard anyway (will show OFFLINE) or Ctrl+C to exit..."
-fi
-
+# Main execution
 view_dashboard
