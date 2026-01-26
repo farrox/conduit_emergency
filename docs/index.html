@@ -13,7 +13,7 @@
                 <h1>Conduit CLI</h1>
                 <ul>
                     <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="quickstart.html">Quick Start</a></li>
                     <li><a href="install.html">Installation</a></li>
                     <li><a href="setup.html">Setup</a></li>
                     <li><a href="usage.html">Usage</a></li>
@@ -24,59 +24,117 @@
 
     <main class="container">
         <section class="hero">
-            <h2>Conduit CLI Documentation</h2>
-            <p>Command-line interface for running a Psiphon Conduit node - a volunteer-run proxy that relays traffic for users in censored regions.</p>
-            <p style="margin-top: 1rem;"><strong>New to this?</strong> Start with the <a href="quickstart.html" style="color: white; text-decoration: underline;">Quick Start Guide</a> for Mac users.</p>
+            <h2>Conduit CLI - Help People Access the Open Internet</h2>
+            <p>Run a volunteer proxy node that helps users in censored regions access the internet. Get started in minutes!</p>
         </section>
 
         <section class="content">
-            <h3>Quick Start</h3>
-            <div class="code-block">
-                <pre><code># First time setup (clones required dependencies)
-make setup
+            <h2>🚀 Get Started in 3 Steps</h2>
+            
+            <h3>Step 1: Choose Your Installation Method</h3>
+            <p>Pick the easiest option for you:</p>
 
-# Build
-make build
-
-# Run
-./dist/conduit start --psiphon-config /path/to/psiphon_config.json</code></pre>
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid #3498db;">
+                <h4>🥇 Option 1: Docker Manager (Easiest - Recommended)</h4>
+                <p><strong>Best for:</strong> Mac users who want the simplest setup with a beautiful UI</p>
+                <p>If you have Docker Desktop installed, this is the easiest way:</p>
+                <div class="code-block">
+                    <pre><code>./scripts/conduit-manager-mac.sh</code></pre>
+                </div>
+                <p>✅ No building required<br>
+                ✅ Beautiful live dashboard<br>
+                ✅ Automatic updates<br>
+                ✅ Smart start/stop/restart</p>
+                <p><a href="markdown/CONDUIT_MANAGER_MAC.md">Learn more about Docker Manager →</a></p>
             </div>
 
-            <h3>Requirements</h3>
-            <ul>
-                <li><strong>Go 1.24.x</strong> (Go 1.25+ is not supported due to psiphon-tls compatibility)</li>
-                <li>Psiphon network configuration file (JSON)</li>
-            </ul>
-            <p>See <a href="setup.html">Setup Guide</a> for installation instructions.</p>
-
-            <h3>Easy Installation for macOS</h3>
-            <p>For Intel-based Mac users, we've made installation as simple as possible:</p>
-            <ul>
-                <li><strong>DMG Installer:</strong> Download, drag to Applications, and run</li>
-                <li><strong>Automated Setup:</strong> One script handles everything for cloned repos</li>
-                <li><strong>Simple Launcher:</strong> Double-click to start</li>
-            </ul>
-            <p>See the <a href="install.html">Installation Guide</a> for details.</p>
-
-            <h3>Optimal Configuration</h3>
-            <p>Configure optimal settings for maximum users with your bandwidth:</p>
-            <div class="code-block">
-                <pre><code># Interactive configuration helper
-./scripts/configure-optimal.sh
-
-# Or quick start with auto-detection
-./scripts/quick-optimal.sh</code></pre>
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid #2ecc71;">
+                <h4>🥈 Option 2: Download DMG (Native Binary)</h4>
+                <p><strong>Best for:</strong> Mac users who want a native app without Docker</p>
+                <ol>
+                    <li>Download the <code>Conduit.dmg</code> file</li>
+                    <li>Double-click to mount it</li>
+                    <li>Drag "Conduit" to Applications</li>
+                    <li>Double-click "Start Conduit.command"</li>
+                </ol>
+                <p><a href="install.html">Detailed DMG installation guide →</a></p>
             </div>
-            <p>See <a href="markdown/CONFIG_OPTIMAL.md">CONFIG_OPTIMAL.md</a> for detailed guidance.</p>
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid #9b59b6;">
+                <h4>🥉 Option 3: Build from Source</h4>
+                <p><strong>Best for:</strong> Developers or users who want full control</p>
+                <div class="code-block">
+                    <pre><code>git clone https://github.com/farrox/conduit_emergency.git
+cd conduit_emergency
+./scripts/easy-setup.sh</code></pre>
+                </div>
+                <p>✅ Automated setup (installs everything)<br>
+                ✅ Creates launcher script<br>
+                ✅ Full customization</p>
+                <p><a href="quickstart.html">Step-by-step quick start guide →</a></p>
+            </div>
+
+            <h3>Step 2: Get Your Config File</h3>
+            <p>The config file connects you to the Psiphon network. <strong>No email needed if you have the iOS app!</strong></p>
+            
+            <h4>If You Have the iOS Conduit App:</h4>
+            <div class="code-block">
+                <pre><code>./scripts/extract-ios-config.sh</code></pre>
+            </div>
+            <p>That's it! The script extracts the config from your iOS app.</p>
+
+            <h4>If You Don't Have the iOS App:</h4>
+            <p>Email <strong>info@psiphon.ca</strong> with subject "Request for Conduit CLI Configuration"</p>
+            <p><a href="markdown/GET_CONFIG.md">More details on getting your config →</a></p>
+
+            <h3>Step 3: Start Conduit</h3>
+            <p>You're ready! How you start depends on your installation method:</p>
+            <ul>
+                <li><strong>Docker Manager:</strong> Just run the script - it handles everything!</li>
+                <li><strong>DMG:</strong> Double-click "Start Conduit.command" in Applications</li>
+                <li><strong>From Source:</strong> Double-click "Start Conduit.command" in the project folder</li>
+            </ul>
+
+            <h3>Optional: Configure Optimal Settings</h3>
+            <p>Want to help the most users with your internet speed? Run the optimal configuration helper:</p>
+            <div class="code-block">
+                <pre><code>./scripts/configure-optimal.sh</code></pre>
+            </div>
+            <p>This will:
+            <ul>
+                <li>Test your internet bandwidth</li>
+                <li>Calculate the best settings for maximum users</li>
+                <li>Create a launcher with optimal settings</li>
+            </ul>
+            <p><a href="markdown/CONFIG_OPTIMAL.md">Learn more about optimal configuration →</a></p>
+
+            <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
+
+            <h2>📚 More Information</h2>
+            
+            <h3>Documentation</h3>
+            <ul>
+                <li><a href="quickstart.html">Quick Start Guide</a> - Step-by-step for Mac users</li>
+                <li><a href="install.html">Installation Guide</a> - Detailed installation options</li>
+                <li><a href="setup.html">Setup Guide</a> - Advanced setup and configuration</li>
+                <li><a href="usage.html">Usage Guide</a> - Command options and examples</li>
+            </ul>
+
+            <h3>What is Conduit?</h3>
+            <p>Conduit is a volunteer-run proxy service that helps people in censored regions access the open internet. By running a Conduit node, you're providing a valuable service to help people bypass internet censorship.</p>
 
             <h3>Features</h3>
             <ul>
-                <li>Volunteer-run proxy for users in censored regions</li>
-                <li>Configurable client limits and bandwidth</li>
-                <li>Docker support with embedded configuration</li>
-                <li>Cross-platform builds</li>
-                <li>Easy macOS installation (DMG + automated setup)</li>
+                <li>✅ Easy installation (multiple methods)</li>
+                <li>✅ Configurable client limits and bandwidth</li>
+                <li>✅ Docker support with embedded configuration</li>
+                <li>✅ Cross-platform builds</li>
+                <li>✅ Beautiful management UI (Docker Manager)</li>
+                <li>✅ Optimal configuration helpers</li>
             </ul>
+
+            <h3>Need Help?</h3>
+            <p>Check out the <a href="quickstart.html">Quick Start Guide</a> for detailed step-by-step instructions, or see the <a href="install.html">Installation Guide</a> for more options.</p>
         </section>
     </main>
 
