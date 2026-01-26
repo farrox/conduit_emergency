@@ -1,21 +1,57 @@
 # Build artifacts
 dist/
 /conduit
+*.exe
+*.dll
 
 # Dependencies - cloned by 'make setup', not committed
 psiphon-tunnel-core/
 
-# Data directory (contains user keys)
+# Data directory (contains user keys and runtime data)
 data/
+data.backup/
+*.key
+*.pem
 
 # Psiphon config files (may contain sensitive network identifiers)
 psiphon_config.json
+!psiphon_config.example.json
+
+# Stats and logs
+stats.json
+*.log
+/tmp/conduit*.log
+
+# Test artifacts
+*.test
+coverage.out
+coverage.html
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-*
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.bak
+*.backup
+
+# DMG files (build artifacts)
+*.dmg
+
+# Go test cache
+.cache/
