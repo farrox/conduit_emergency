@@ -193,6 +193,32 @@ docker run -d --name conduit \
   conduit start --psiphon-config /config.json
 ```
 
+## Cloud Deployment
+
+Deploy Conduit to cloud providers like DigitalOcean, Linode, Hetzner, AWS, Google Cloud, or Azure:
+
+- **[Cloud Deployment Guide](docs/markdown/DEPLOY_CLOUD.md)** - Complete guide for all major cloud providers
+- **[Deployment TODO Checklist](DEPLOY_TODO.md)** - Quick reference checklist for deployment tasks
+
+**Quick start (Docker on Ubuntu):**
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+
+# Clone and build
+git clone https://github.com/farrox/conduit_emergency.git
+cd conduit_emergency
+docker build -t conduit --build-arg PSIPHON_CONFIG=psiphon_config.json -f Dockerfile.embedded .
+
+# Run with persistent volume
+docker run -d --name conduit \
+  -v conduit-data:/home/conduit/data \
+  --restart unless-stopped \
+  conduit
+```
+
+See the [full deployment guide](docs/markdown/DEPLOY_CLOUD.md) for systemd services, firewall configuration, monitoring, and provider-specific notes.
+
 ## Data Directory
 
 Keys and state are stored in the data directory (default: `./data`):
