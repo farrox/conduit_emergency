@@ -66,32 +66,7 @@ fi
 
 echo " Dependencies installed"
 
-#
-# Step 2: Install Go 1.24.x
-#
-echo -e "${YELLOW}[2/6] Installing Go 1.24.x...${NC}"
-
-if command -v go &> /dev/null; then
-    GO_VERSION=$(go version | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
-    GO_MAJOR=$(echo $GO_VERSION | cut -d. -f1)
-    GO_MINOR=$(echo $GO_VERSION | cut -d. -f2)
-    
-    if [ "$GO_MAJOR" -eq 1 ] && [ "$GO_MINOR" -eq 24 ]; then
-        echo " Go $GO_VERSION already installed"
-    elif [ "$GO_MAJOR" -gt 1 ] || ([ "$GO_MAJOR" -eq 1 ] && [ "$GO_MINOR" -ge 25 ]); then
-        echo " Go $GO_VERSION detected, but Go 1.24.x is required"
-        echo " Installing Go 1.24.0..."
-        install_go
-    else
-        echo " Go $GO_VERSION detected, but Go 1.24.x is required"
-        echo " Installing Go 1.24.0..."
-        install_go
-    fi
-else
-    echo " Installing Go 1.24.0..."
-    install_go
-fi
-
+# Function to install Go
 install_go() {
     GO_VERSION="1.24.0"
     GO_ARCH=$(uname -m)
@@ -131,8 +106,29 @@ install_go() {
     echo " Go ${GO_VERSION} installed successfully"
 }
 
-# Call install_go if needed
-if ! command -v go &> /dev/null || ! go version | grep -q "go1.24"; then
+#
+# Step 2: Install Go 1.24.x
+#
+echo -e "${YELLOW}[2/6] Installing Go 1.24.x...${NC}"
+
+if command -v go &> /dev/null; then
+    GO_VERSION=$(go version | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
+    GO_MAJOR=$(echo $GO_VERSION | cut -d. -f1)
+    GO_MINOR=$(echo $GO_VERSION | cut -d. -f2)
+    
+    if [ "$GO_MAJOR" -eq 1 ] && [ "$GO_MINOR" -eq 24 ]; then
+        echo " Go $GO_VERSION already installed"
+    elif [ "$GO_MAJOR" -gt 1 ] || ([ "$GO_MAJOR" -eq 1 ] && [ "$GO_MINOR" -ge 25 ]); then
+        echo " Go $GO_VERSION detected, but Go 1.24.x is required"
+        echo " Installing Go 1.24.0..."
+        install_go
+    else
+        echo " Go $GO_VERSION detected, but Go 1.24.x is required"
+        echo " Installing Go 1.24.0..."
+        install_go
+    fi
+else
+    echo " Installing Go 1.24.0..."
     install_go
 fi
 
