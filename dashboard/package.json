@@ -1,0 +1,16 @@
+{
+  "name": "conduit-dashboard",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Web dashboard for Conduit CLI - Single node monitoring",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "sql.js": "^1.13.0"
+  }
+}

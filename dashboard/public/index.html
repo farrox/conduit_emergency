@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conduit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0a0a0a;
+      min-height: 100vh;
+      color: #e5e5e5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #1a1a1a;
+      margin-bottom: 2rem;
+    }
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: #22c55e; }
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.8125rem;
+      color: #525252;
+    }
+    .header-meta a { color: #525252; text-decoration: none; transition: color 0.15s; }
+    .header-meta a:hover { color: #e5e5e5; }
+    .pulse {
+      width: 6px; height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Summary bar */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .summary-item {
+      background: #0a0a0a;
+      padding: 1.25rem 1.5rem;
+    }
+    .summary-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+    .summary-label {
+      font-size: 0.75rem;
+      color: #525252;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Charts */
+    .chart-section {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .chart-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #a3a3a3;
+    }
+    .charts-grid { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+    #trafficChart, #clientsChart { height: 200px !important; }
+    #geoChart { height: 300px !important; }
+
+    /* Nodes grid */
+    .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+
+    .node {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: border-color 0.15s;
+    }
+    .node:hover { border-color: #262626; }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .node-name {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      margin-bottom: 0.125rem;
+    }
+    .node-ip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #525252;
+    }
+
+    .status {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+    .status-connected { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .status-active { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .status-running { background: rgba(59,130,246,0.15); color: #3b82f6; }
+    .status-waiting { background: rgba(234,179,8,0.15); color: #eab308; }
+    .status-stopped { background: rgba(82,82,82,0.15); color: #525252; }
+    .status-offline { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .status-error { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+    .node-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .node-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: #fff;
+    }
+    .node-stat-label {
+      font-size: 0.6875rem;
+      color: #525252;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.125rem;
+    }
+    .node-error {
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: rgba(239,68,68,0.1);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #ef4444;
+    }
+    .node-config {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #1a1a1a;
+    }
+    .config-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      padding: 0.2rem 0.4rem;
+      background: #1a1a1a;
+      border-radius: 3px;
+      color: #737373;
+    }
+
+    /* Per-node controls */
+    .node-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      padding-top: 0.625rem;
+      border-top: 1px solid #1a1a1a;
+    }
+    .node-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .node-btn-stop { color: #525252; }
+    .node-btn-stop:hover { color: #ef4444; }
+    .node-btn-start { color: #525252; }
+    .node-btn-start:hover { color: #22c55e; }
+    .node-btn-restart { color: #525252; }
+    .node-btn-restart:hover { color: #3b82f6; }
+    .node-btn-edit { color: #525252; margin-left: auto; }
+    .node-btn-edit:hover { color: #a3a3a3; }
+    .node-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Update banner */
+    .update-banner {
+      background: linear-gradient(90deg, rgba(59,130,246,0.15), rgba(34,197,94,0.15));
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: updatePulse 2s infinite;
+    }
+    @keyframes updatePulse {
+      0%, 100% { border-color: rgba(59,130,246,0.3); }
+      50% { border-color: rgba(34,197,94,0.5); }
+    }
+    .update-banner-text { font-size: 0.875rem; color: #e5e5e5; }
+    .update-banner-text span { color: #22c55e; font-weight: 600; }
+    .update-banner-btn {
+      background: #3b82f6;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .update-banner-btn:hover { background: #2563eb; }
+    .update-banner-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #525252;
+      font-size: 0.875rem;
+    }
+
+    /* Bandwidth section */
+    .bandwidth-section {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+    .bandwidth-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .bandwidth-header:hover { background: #161616; border-radius: 8px; }
+    .bandwidth-title { font-size: 0.875rem; font-weight: 500; color: #a3a3a3; display: flex; align-items: center; gap: 0.5rem; }
+    .bandwidth-title::before { content: '▶'; font-size: 0.625rem; transition: transform 0.2s; }
+    .bandwidth-section.open .bandwidth-title::before { transform: rotate(90deg); }
+    .bandwidth-content { display: none; padding: 0 1.5rem 1.5rem; }
+    .bandwidth-section.open .bandwidth-content { display: block; }
+    .bandwidth-bars { display: flex; flex-direction: column; gap: 0.75rem; }
+    .bandwidth-row { display: flex; align-items: center; gap: 1rem; }
+    .bandwidth-label { width: 80px; font-size: 0.75rem; color: #737373; }
+    .bandwidth-bar-wrap { flex: 1; height: 8px; background: #262626; border-radius: 4px; overflow: hidden; }
+    .bandwidth-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .bandwidth-bar.safe { background: #22c55e; }
+    .bandwidth-bar.warning { background: #eab308; }
+    .bandwidth-bar.danger { background: #ef4444; }
+    .bandwidth-value { width: 120px; font-size: 0.75rem; color: #a3a3a3; text-align: right; font-family: 'JetBrains Mono', monospace; }
+    .bandwidth-eta { width: 90px; font-size: 0.7rem; color: #525252; text-align: right; }
+    .bandwidth-eta.warn { color: #eab308; }
+    .bandwidth-eta.danger { color: #ef4444; }
+
+    /* Controls */
+    .controls { display: flex; gap: 0.5rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-success { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .btn-success:hover { background: rgba(34,197,94,0.25); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .summary { grid-template-columns: repeat(2, 1fr); }
+      .summary-value { font-size: 1.5rem; }
+    }
+
+    /* Setup Wizard */
+    #wizard-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: wizardFadeIn 0.2s ease;
+    }
+    @keyframes wizardFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .wizard-modal {
+      background: #111;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 520px;
+      overflow: hidden;
+      animation: wizardSlideUp 0.3s ease;
+    }
+    @keyframes wizardSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .wizard-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wizard-header h1 { font-size: 1.125rem; font-weight: 600; margin: 0; }
+    .wizard-header h1 span { color: #22c55e; }
+
+    .wizard-content { padding: 1.5rem; }
+    .wizard-content h2 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem; }
+    .wizard-content > p { color: #737373; margin-bottom: 1.5rem; font-size: 0.875rem; }
+
+    .wizard-step {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+    }
+    .wizard-step.highlight {
+      background: rgba(34,197,94,0.06);
+      border-color: rgba(34,197,94,0.2);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: #1a1a1a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      flex-shrink: 0;
+      color: #737373;
+    }
+    .wizard-step.highlight .step-num { background: #22c55e; color: #000; }
+
+    .step-content { flex: 1; }
+    .step-content h3 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.25rem; color: #e5e5e5; }
+    .step-content p { font-size: 0.8125rem; margin: 0; color: #737373; }
+    .step-content .muted { color: #525252; }
+
+    .wizard-code-box {
+      display: flex;
+      align-items: center;
+      background: #0a0a0a;
+      border: 1px solid #262626;
+      border-radius: 6px;
+      padding: 0.625rem 0.875rem;
+      margin: 0.75rem 0;
+      gap: 0.75rem;
+    }
+    .wizard-code-box code {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      color: #22c55e;
+      white-space: nowrap;
+      overflow-x: auto;
+      line-height: 1.4;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .wizard-code-box code::-webkit-scrollbar { display: none; }
+    .wizard-code-box button {
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 4px;
+      color: #737373;
+      padding: 0.375rem 0.5rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .wizard-code-box button:hover { background: #262626; color: #e5e5e5; }
+
+    .wizard-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .wizard-btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+    .wizard-btn-secondary {
+      background: transparent;
+      border: 1px solid #262626;
+      color: #737373;
+    }
+    .wizard-btn-secondary:hover { border-color: #404040; color: #a3a3a3; }
+    .wizard-btn-primary {
+      background: #22c55e;
+      color: #000;
+    }
+    .wizard-btn-primary:hover { background: #16a34a; }
+
+    /* Settings button in header */
+    .settings-btn {
+      background: none;
+      border: 1px solid #262626;
+      border-radius: 6px;
+      color: #525252;
+      padding: 0.375rem 0.625rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.15s;
+    }
+    .settings-btn:hover { border-color: #404040; color: #a3a3a3; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #525252;
+    }
+    .empty-state h3 { font-size: 1rem; font-weight: 500; color: #737373; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.875rem; margin-bottom: 1rem; }
+    .empty-state button {
+      background: #22c55e;
+      border: none;
+      color: #000;
+      padding: 0.625rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .empty-state button:hover { background: #16a34a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">conduit<span>.</span></div>
+      <div class="header-meta">
+        <div class="pulse"></div>
+        <span id="lastUpdate">-</span>
+        <button class="settings-btn" onclick="Wizard.showSettings()" title="Settings">⚙</button>
+        <a href="/logout">Logout</a>
+      </div>
+    </header>
+
+    <div class="summary">
+      <div class="summary-item">
+        <div class="summary-value" id="totalNodes">-</div>
+        <div class="summary-label">Nodes Online</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="totalClients">-</div>
+        <div class="summary-label">Clients</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="totalUpload">-</div>
+        <div class="summary-label">Upload</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="totalDownload">-</div>
+        <div class="summary-label">Download</div>
+      </div>
+    </div>
+
+    <div id="updateBanner" style="display:none"></div>
+
+    <div class="charts-grid">
+      <div class="chart-section">
+        <div class="chart-header">
+          <span class="chart-title">Traffic (24h)</span>
+        </div>
+        <canvas id="trafficChart"></canvas>
+      </div>
+      <div class="chart-section">
+        <div class="chart-header">
+          <span class="chart-title">Clients (24h)</span>
+        </div>
+        <canvas id="clientsChart"></canvas>
+      </div>
+      <div class="chart-section">
+        <div class="chart-header">
+          <span class="chart-title">Client Locations (24h)</span>
+        </div>
+        <canvas id="geoChart"></canvas>
+      </div>
+    </div>
+
+    <div class="nodes" id="nodes">
+      <div class="loading">Loading...</div>
+    </div>
+
+    <div class="bandwidth-section" id="bandwidthSection">
+      <div class="bandwidth-header" onclick="document.getElementById('bandwidthSection').classList.toggle('open')">
+        <span class="bandwidth-title">Monthly Bandwidth (auto-stop at limit)</span>
+        <div class="controls" onclick="event.stopPropagation()">
+          <button class="btn btn-danger" id="stopAll" onclick="controlAll('stop')">Stop All</button>
+          <button class="btn btn-success" id="startAll" onclick="controlAll('start')">Start All</button>
+        </div>
+      </div>
+      <div class="bandwidth-content">
+        <div class="bandwidth-bars" id="bandwidthBars">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const parseBytes = str => {
+      if (!str || str === 'N/A') return 0;
+      const m = str.match(/^([\d.]+)\s*([KMGTPE]?B?)$/i);
+      if (!m) return 0;
+      const units = { B: 1, KB: 1024, MB: 1024**2, GB: 1024**3, TB: 1024**4 };
+      return parseFloat(m[1]) * (units[(m[2] || 'B').toUpperCase()] || 1);
+    };
+
+    const formatBytes = b => {
+      if (b === 0) return '0 B';
+      const i = Math.floor(Math.log(b) / Math.log(1024));
+      return (b / Math.pow(1024, i)).toFixed(1) + ' ' + ['B','KB','MB','GB','TB'][i];
+    };
+
+    const renderNode = s => `
+      <div class="node" data-server="${s.name}">
+        <div class="node-header">
+          <div>
+            <div class="node-name">${s.name}</div>
+            <div class="node-ip">${s.host || ''}</div>
+          </div>
+          <span class="status status-${s.status}" data-field="status">${s.status}</span>
+        </div>
+        <div class="node-stats">
+          <div><div class="node-stat-value" data-field="clients">${s.clients}</div><div class="node-stat-label">Clients</div></div>
+          <div><div class="node-stat-value" data-field="uptime">${s.uptime}</div><div class="node-stat-label">Uptime</div></div>
+          <div><div class="node-stat-value" data-field="upload">${s.upload}</div><div class="node-stat-label">Upload</div></div>
+          <div><div class="node-stat-value" data-field="download">${s.download}</div><div class="node-stat-label">Download</div></div>
+        </div>
+        <div class="node-config" data-field="config" style="${s.maxClients || s.bandwidth !== null ? '' : 'display:none'}">
+          <span class="config-tag" data-field="maxClients">-m ${s.maxClients ?? '?'}</span>
+          <span class="config-tag" data-field="bandwidth">-b ${s.bandwidth === -1 ? '∞' : s.bandwidth ?? '?'}</span>
+        </div>
+        <div class="node-controls">
+          <button class="node-btn node-btn-stop" onclick="controlNode('${s.name}', 'stop')">Stop</button>
+          <button class="node-btn node-btn-start" onclick="controlNode('${s.name}', 'start')">Start</button>
+          <button class="node-btn node-btn-restart" onclick="controlNode('${s.name}', 'restart')">Restart</button>
+          <button class="node-btn node-btn-edit" onclick="editNode('${s.name}')">Edit</button>
+        </div>
+        <div class="node-error" data-field="error" style="${s.error ? '' : 'display:none'}">${s.error || ''}</div>
+      </div>
+    `;
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        if (res.status === 401) return location.href = '/login';
+        const data = await res.json();
+
+        const nodesEl = document.getElementById('nodes');
+        const existingNodes = nodesEl.querySelectorAll('.node[data-server]');
+
+        // If structure changed, do full render
+        if (existingNodes.length !== data.length) {
+          nodesEl.innerHTML = data.map(renderNode).join('');
+        } else {
+          // Graceful update - only update changed values
+          for (const s of data) {
+            const node = nodesEl.querySelector(`[data-server="${s.name}"]`);
+            if (!node) continue;
+
+            const statusEl = node.querySelector('[data-field="status"]');
+            if (statusEl.textContent !== s.status) {
+              statusEl.textContent = s.status;
+              statusEl.className = `status status-${s.status}`;
+            }
+
+            const fields = { clients: s.clients, uptime: s.uptime, upload: s.upload, download: s.download };
+            for (const [field, val] of Object.entries(fields)) {
+              const el = node.querySelector(`[data-field="${field}"]`);
+              if (el && el.textContent !== String(val)) el.textContent = val;
+            }
+
+            // Update config tags
+            const configEl = node.querySelector('[data-field="config"]');
+            if (configEl) {
+              configEl.style.display = (s.maxClients || s.bandwidth !== null) ? '' : 'none';
+              const mEl = configEl.querySelector('[data-field="maxClients"]');
+              const bEl = configEl.querySelector('[data-field="bandwidth"]');
+              if (mEl) mEl.textContent = `-m ${s.maxClients ?? '?'}`;
+              if (bEl) bEl.textContent = `-b ${s.bandwidth === -1 ? '∞' : s.bandwidth ?? '?'}`;
+            }
+
+            const errEl = node.querySelector('[data-field="error"]');
+            if (errEl) {
+              errEl.textContent = s.error || '';
+              errEl.style.display = s.error ? '' : 'none';
+            }
+          }
+        }
+
+        const active = data.filter(s => ['connected','active','running','waiting'].includes(s.status)).length;
+        document.getElementById('totalNodes').textContent = `${active}/${data.length}`;
+        document.getElementById('totalClients').textContent = data.reduce((a, s) => a + s.clients, 0);
+        document.getElementById('totalUpload').textContent = formatBytes(data.reduce((a, s) => a + parseBytes(s.upload), 0));
+        document.getElementById('totalDownload').textContent = formatBytes(data.reduce((a, s) => a + parseBytes(s.download), 0));
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+      } catch (e) {
+        document.getElementById('nodes').innerHTML = `<div class="loading">Error: ${e.message}</div>`;
+      }
+    }
+
+    let trafficChart = null;
+    let clientsChart = null;
+    const defaultColors = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#10b981', '#f97316'];
+
+    async function fetchHistory() {
+      try {
+        const res = await fetch('/api/history?hours=24');
+        if (res.status === 401) return;
+        const data = await res.json();
+
+        // Group by 5-min intervals - take LATEST value per server per bucket
+        const grouped = {};
+        for (const r of data) {
+          const ts = Math.floor(r.timestamp / 300000) * 300000;
+          if (!grouped[ts]) grouped[ts] = { serverTraffic: {}, serverClients: {} };
+          grouped[ts].serverTraffic[r.server] = (r.upload_bytes + r.download_bytes) / 1024 / 1024; // MB
+          grouped[ts].serverClients[r.server] = r.clients || 0;
+        }
+
+        const times = Object.keys(grouped).sort((a,b) => a-b);
+        const labels = times.map(t => new Date(+t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+        const servers = [...new Set(data.map(r => r.server))];
+
+        // === TRAFFIC CHART (original style with fills) ===
+        const trafficDatasets = servers.map((s, i) => ({
+          label: s,
+          data: times.map(t => grouped[t].serverTraffic[s] || 0),
+          borderColor: defaultColors[i % defaultColors.length],
+          backgroundColor: defaultColors[i % defaultColors.length] + '20',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+        }));
+
+        const ctx1 = document.getElementById('trafficChart').getContext('2d');
+        if (trafficChart) trafficChart.destroy();
+        trafficChart = new Chart(ctx1, {
+          type: 'line',
+          data: { labels, datasets: trafficDatasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: { legend: { display: true, position: 'top', align: 'end', labels: { color: '#525252', boxWidth: 8, padding: 16, font: { size: 11 } } } },
+            scales: {
+              x: { ticks: { color: '#404040', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1a1a' }, border: { color: '#1a1a1a' } },
+              y: { ticks: { color: '#404040', callback: v => v.toFixed(0) + ' MB', font: { size: 10 } }, grid: { color: '#1a1a1a' }, border: { color: '#1a1a1a' } }
+            }
+          }
+        });
+
+        // === CLIENTS CHART (same style) ===
+        const clientsDatasets = servers.map((s, i) => ({
+          label: s,
+          data: times.map(t => grouped[t].serverClients[s] || 0),
+          borderColor: defaultColors[i % defaultColors.length],
+          backgroundColor: defaultColors[i % defaultColors.length] + '20',
+          borderWidth: 1.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+        }));
+
+        const ctx2 = document.getElementById('clientsChart').getContext('2d');
+        if (clientsChart) clientsChart.destroy();
+        clientsChart = new Chart(ctx2, {
+          type: 'line',
+          data: { labels, datasets: clientsDatasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: { legend: { display: true, position: 'top', align: 'end', labels: { color: '#525252', boxWidth: 8, padding: 16, font: { size: 11 } } } },
+            scales: {
+              x: { ticks: { color: '#404040', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1a1a' }, border: { color: '#1a1a1a' } },
+              y: { ticks: { color: '#404040', font: { size: 10 } }, grid: { color: '#1a1a1a' }, border: { color: '#1a1a1a' } }
+            }
+          }
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    let geoChart = null;
+
+    async function fetchGeo() {
+      try {
+        const res = await fetch('/api/geo?hours=24');
+        if (res.status === 401) return;
+        const data = await res.json();
+        if (!data.length) return;
+
+        // Take top 15 countries
+        const top = data.slice(0, 15);
+        const labels = top.map(r => r.country_name);
+        const counts = top.map(r => r.count);
+
+        // Color IR (Iran) in green, others in blue
+        const colors = top.map(r => r.country_code === 'IR' ? '#22c55e' : '#3b82f6');
+
+        const ctx = document.getElementById('geoChart').getContext('2d');
+        if (geoChart) geoChart.destroy();
+        geoChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Unique IPs',
+              data: counts,
+              backgroundColor: colors,
+              borderRadius: 4,
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#404040', font: { size: 10 } },
+                grid: { color: '#1a1a1a' },
+                border: { color: '#1a1a1a' }
+              },
+              y: {
+                ticks: { color: '#a3a3a3', font: { size: 11 } },
+                grid: { display: false },
+                border: { color: '#1a1a1a' }
+              }
+            }
+          }
+        });
+      } catch (e) { console.error('Geo fetch failed:', e); }
+    }
+
+    const formatBandwidth = b => {
+      if (b === 0) return '0 B';
+      const i = Math.floor(Math.log(b) / Math.log(1024));
+      return (b / Math.pow(1024, i)).toFixed(2) + ' ' + ['B','KB','MB','GB','TB'][i];
+    };
+
+    function calcDepletion(total, limit) {
+      if (!limit || total <= 0) return null;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const daysElapsed = Math.max(1, (now - startOfMonth) / 86400000);
+      const dailyRate = total / daysElapsed;
+      if (dailyRate <= 0) return null;
+      const daysUntilDepleted = (limit - total) / dailyRate;
+      if (daysUntilDepleted <= 0) return { text: 'Depleted', class: 'danger' };
+      const depletionDate = new Date(now.getTime() + daysUntilDepleted * 86400000);
+      if (depletionDate > endOfMonth) return { text: 'OK', class: '' };
+      const daysLeft = Math.ceil(daysUntilDepleted);
+      if (daysLeft <= 3) return { text: `${daysLeft}d left`, class: 'danger' };
+      if (daysLeft <= 7) return { text: `${daysLeft}d left`, class: 'warn' };
+      return { text: `~${daysLeft}d left`, class: '' };
+    }
+
+    async function fetchBandwidth() {
+      try {
+        const res = await fetch('/api/bandwidth');
+        if (res.status === 401) return;
+        const data = await res.json();
+
+        const container = document.getElementById('bandwidthBars');
+        const entries = Object.entries(data);
+
+        // Check if structure changed
+        const existingRows = container.querySelectorAll('.bandwidth-row[data-server]');
+        if (existingRows.length !== entries.length) {
+          // Full render
+          container.innerHTML = entries.map(([name, info]) => {
+            const pct = Math.min(info.percent, 100);
+            const barClass = pct >= 90 ? 'danger' : pct >= 70 ? 'warning' : 'safe';
+            const limitStr = info.limit ? formatBandwidth(info.limit) : 'unlimited';
+            const eta = calcDepletion(info.total, info.limit);
+            return `
+              <div class="bandwidth-row" data-server="${name}">
+                <span class="bandwidth-label">${name}</span>
+                <div class="bandwidth-bar-wrap">
+                  <div class="bandwidth-bar ${barClass}" style="width: ${info.limit ? pct : 0}%"></div>
+                </div>
+                <span class="bandwidth-value">${formatBandwidth(info.total)} / ${limitStr}</span>
+                <span class="bandwidth-eta ${eta?.class || ''}">${eta?.text || '-'}</span>
+              </div>
+            `;
+          }).join('') || '<div class="loading">No data</div>';
+        } else {
+          // Graceful update
+          for (const [name, info] of entries) {
+            const row = container.querySelector(`[data-server="${name}"]`);
+            if (!row) continue;
+
+            const pct = Math.min(info.percent, 100);
+            const barClass = pct >= 90 ? 'danger' : pct >= 70 ? 'warning' : 'safe';
+            const limitStr = info.limit ? formatBandwidth(info.limit) : 'unlimited';
+            const eta = calcDepletion(info.total, info.limit);
+
+            const bar = row.querySelector('.bandwidth-bar');
+            bar.className = `bandwidth-bar ${barClass}`;
+            bar.style.width = `${info.limit ? pct : 0}%`;
+
+            const val = row.querySelector('.bandwidth-value');
+            val.textContent = `${formatBandwidth(info.total)} / ${limitStr}`;
+
+            const etaEl = row.querySelector('.bandwidth-eta');
+            etaEl.textContent = eta?.text || '-';
+            etaEl.className = `bandwidth-eta ${eta?.class || ''}`;
+          }
+        }
+      } catch (e) {
+        console.error('Bandwidth fetch failed:', e);
+      }
+    }
+
+    async function controlAll(action) {
+      const btn = document.getElementById(action === 'stop' ? 'stopAll' : 'startAll');
+      btn.disabled = true;
+      btn.textContent = action === 'stop' ? 'Stopping...' : 'Starting...';
+
+      try {
+        const res = await fetch(`/api/control/${action}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.results) {
+          const failed = data.results.filter(r => !r.success);
+          if (failed.length > 0) {
+            alert(`Some servers failed: ${failed.map(f => f.server + ': ' + f.error).join(', ')}`);
+          }
+        }
+
+        // Refresh stats after action
+        setTimeout(() => {
+          fetchStats();
+          fetchBandwidth();
+        }, 2000);
+      } catch (e) {
+        alert('Control action failed: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = action === 'stop' ? 'Stop All' : 'Start All';
+      }
+    }
+
+    // Per-node control
+    async function controlNode(serverName, action) {
+      const node = document.querySelector(`[data-server="${serverName}"]`);
+      const btn = node?.querySelector(`.node-btn-${action}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = action === 'stop' ? 'Stopping...' : action === 'start' ? 'Starting...' : 'Restarting...';
+      }
+
+      try {
+        const res = await fetch(`/api/control/${serverName}/${action}`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) {
+          alert(`Failed: ${data.error || 'Unknown error'}`);
+        }
+        setTimeout(fetchStats, 2000);
+      } catch (e) {
+        alert(`Control failed: ${e.message}`);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+        }
+      }
+    }
+
+    // Edit node modal
+    async function editNode(serverName) {
+      // Fetch current server data
+      let servers = [];
+      try {
+        const res = await fetch('/api/servers');
+        servers = await res.json();
+      } catch {}
+      const server = servers.find(s => s.name === serverName);
+      if (!server) return alert('Server not found');
+
+      const currentLimit = server.bandwidthLimit ? (server.bandwidthLimit / (1024**4)).toFixed(1) : '';
+
+      const html = `
+        <div id="edit-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000">
+          <div style="background:#111;border:1px solid #262626;border-radius:12px;width:90%;max-width:400px;overflow:hidden">
+            <div style="padding:1.25rem;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center">
+              <h2 style="margin:0;font-size:1rem">Edit ${serverName}</h2>
+              <button onclick="document.getElementById('edit-modal').remove()" style="background:none;border:none;color:#525252;cursor:pointer;font-size:1.25rem">✕</button>
+            </div>
+            <div style="padding:1.25rem">
+              <label style="display:block;margin-bottom:1rem">
+                <span style="display:block;font-size:0.75rem;color:#737373;margin-bottom:0.375rem;text-transform:uppercase;letter-spacing:0.05em">Monthly Bandwidth Limit (TB)</span>
+                <input type="number" id="edit-bandwidth" value="${currentLimit}" placeholder="Leave empty for unlimited" step="0.1" min="0" style="width:100%;background:#0a0a0a;border:1px solid #262626;border-radius:6px;padding:0.625rem;color:#e5e5e5;font-family:'JetBrains Mono',monospace;font-size:0.875rem">
+                <span style="font-size:0.6875rem;color:#525252;margin-top:0.25rem;display:block">Empty = unlimited</span>
+              </label>
+              <label style="display:block;margin-bottom:1rem">
+                <span style="display:block;font-size:0.75rem;color:#737373;margin-bottom:0.375rem;text-transform:uppercase;letter-spacing:0.05em">Display Name</span>
+                <input type="text" id="edit-name" value="${server.name}" style="width:100%;background:#0a0a0a;border:1px solid #262626;border-radius:6px;padding:0.625rem;color:#e5e5e5;font-size:0.875rem">
+              </label>
+            </div>
+            <div style="padding:1rem 1.25rem;border-top:1px solid #1a1a1a;display:flex;justify-content:space-between">
+              <button onclick="deleteNode('${serverName}')" style="background:rgba(239,68,68,0.15);border:none;color:#ef4444;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-size:0.8125rem">Delete</button>
+              <button onclick="saveNode('${serverName}')" style="background:#22c55e;border:none;color:#000;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:500;font-size:0.8125rem">Save</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
+
+    async function saveNode(serverName) {
+      const bandwidth = document.getElementById('edit-bandwidth').value;
+      const name = document.getElementById('edit-name').value;
+
+      try {
+        const res = await fetch(`/api/servers/${serverName}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, bandwidthLimit: bandwidth || null })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('edit-modal').remove();
+          fetchStats();
+        } else {
+          alert('Failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+      }
+    }
+
+    async function deleteNode(serverName) {
+      if (!confirm(`Delete ${serverName}? This will remove it from monitoring.`)) return;
+      try {
+        const res = await fetch(`/api/servers/${serverName}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('edit-modal').remove();
+          fetchStats();
+        } else {
+          alert('Failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Delete failed: ' + e.message);
+      }
+    }
+
+    // Update system
+    async function checkForUpdates() {
+      try {
+        const res = await fetch('/api/version');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const banner = document.getElementById('updateBanner');
+        let bannerHTML = '';
+
+        // Relay update
+        if (data.updateAvailable && data.serversNeedingUpdate?.length > 0) {
+          const count = data.serversNeedingUpdate.length;
+          bannerHTML += `
+            <div class="update-banner">
+              <div class="update-banner-text">
+                Relay update: <span>${data.latest}</span> - ${count} server${count > 1 ? 's' : ''} need${count === 1 ? 's' : ''} update
+              </div>
+              <button class="update-banner-btn" onclick="updateAllServers()">Update All</button>
+            </div>
+          `;
+        }
+
+        // Dashboard update
+        if (data.dashboard?.updateAvailable) {
+          bannerHTML += `
+            <div class="update-banner dashboard-update">
+              <div class="update-banner-text">
+                Dashboard update: <span>${data.dashboard.local}</span> → <span>${data.dashboard.latest}</span>
+              </div>
+              <button class="update-banner-btn" onclick="updateDashboard()">Update Dashboard</button>
+            </div>
+          `;
+        }
+
+        banner.innerHTML = bannerHTML;
+        banner.style.display = bannerHTML ? 'block' : 'none';
+      } catch (e) {
+        console.error('Update check failed:', e);
+      }
+    }
+
+    async function updateDashboard() {
+      const btn = document.querySelector('.dashboard-update .update-banner-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+      }
+      try {
+        const res = await fetch('/api/update-dashboard', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert('Dashboard updated. Page will reload.');
+          setTimeout(() => location.reload(), 2000);
+        } else {
+          alert('Update failed: ' + (data.error || 'Unknown error'));
+          if (btn) btn.textContent = 'Update Dashboard';
+        }
+      } catch (e) {
+        alert('Update failed: ' + e.message);
+        if (btn) btn.textContent = 'Update Dashboard';
+      }
+    }
+
+    async function updateAllServers() {
+      const btn = document.querySelector('.update-banner-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+      }
+
+      try {
+        const res = await fetch('/api/update', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.results) {
+          const failed = data.results.filter(r => !r.success);
+          const success = data.results.filter(r => r.success);
+
+          if (failed.length === 0) {
+            alert(`Updated ${success.length} server(s) successfully!`);
+          } else {
+            alert(`Updated ${success.length} server(s). Failed: ${failed.map(f => f.server).join(', ')}`);
+          }
+        }
+
+        // Hide banner and refresh
+        document.getElementById('updateBanner').style.display = 'none';
+        setTimeout(() => {
+          fetchStats();
+          checkForUpdates();
+        }, 3000);
+      } catch (e) {
+        alert(`Update failed: ${e.message}`);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Update All';
+        }
+      }
+    }
+
+    fetchStats();
+    fetchHistory();
+    fetchBandwidth();
+    fetchGeo();
+    checkForUpdates();
+    setInterval(fetchStats, 10000);
+    setInterval(fetchHistory, 60000);
+    setInterval(fetchBandwidth, 60000);
+    setInterval(fetchGeo, 60000);
+    setInterval(checkForUpdates, 300000); // Check for updates every 5 minutes
+
+    // ═══════════════════════════════════════════════════════════════
+    // Setup Wizard
+    // ═══════════════════════════════════════════════════════════════
+    const Wizard = {
+      joinCommand: '',
+      hasJoinToken: false,
+
+      async init() {
+        try {
+          const res = await fetch('/api/status');
+          if (res.status === 401) return;
+          const status = await res.json();
+
+          this.joinCommand = status.joinCommand || '';
+          this.hasJoinToken = status.hasJoinToken;
+
+          if (status.firstRun || status.serverCount === 0) {
+            this.show();
+          }
+        } catch (e) {
+          console.error('Wizard init failed:', e);
+        }
+      },
+
+      show() {
+        if (document.getElementById('wizard-overlay')) return;
+
+        const html = `
+          <div id="wizard-overlay">
+            <div class="wizard-modal">
+              <div class="wizard-header">
+                <h1>conduit<span>.</span></h1>
+              </div>
+              <div class="wizard-content">
+                <h2>Welcome! 👋</h2>
+                <p>Your dashboard is ready. Now let's connect your servers.</p>
+
+                <div class="wizard-step">
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <h3>This server is ready</h3>
+                    <p class="muted">The relay on this machine is being monitored.</p>
+                  </div>
+                </div>
+
+                ${this.hasJoinToken ? `
+                <div class="wizard-step highlight">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h3>Add other servers</h3>
+                    <p>SSH into each server and run:</p>
+                    <div class="wizard-code-box">
+                      <code id="wizard-join-cmd">${this.joinCommand}</code>
+                      <button onclick="Wizard.copy()">Copy</button>
+                    </div>
+                    <p class="muted">This installs the relay (if needed) and auto-connects to this dashboard.</p>
+                  </div>
+                </div>
+                ` : `
+                <div class="wizard-step">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h3>Add servers manually</h3>
+                    <p class="muted">Use Settings to add servers (SSH key must be configured separately).</p>
+                  </div>
+                </div>
+                `}
+
+                <div class="wizard-step">
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <h3>That's it!</h3>
+                    <p class="muted">Servers appear here automatically after running the command.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="wizard-footer">
+                <button class="wizard-btn wizard-btn-secondary" onclick="Wizard.close()">I'll add servers later</button>
+                <button class="wizard-btn wizard-btn-primary" onclick="Wizard.close()">Done</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', html);
+      },
+
+      close() {
+        const overlay = document.getElementById('wizard-overlay');
+        if (overlay) overlay.remove();
+      },
+
+      copy() {
+        navigator.clipboard.writeText(this.joinCommand).then(() => {
+          const btn = document.querySelector('.wizard-code-box button');
+          if (btn) {
+            const orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = orig, 1500);
+          }
+        });
+      },
+
+      async showSettings() {
+        // Fetch current status
+        let joinCommand = '';
+        let sshKey = '';
+        try {
+          const statusRes = await fetch('/api/status');
+          const status = await statusRes.json();
+          joinCommand = status.joinCommand || '';
+        } catch {}
+        try {
+          const keyRes = await fetch('/api/ssh-key');
+          const keyData = await keyRes.json();
+          sshKey = keyData.publicKey || '';
+        } catch {}
+
+        // Store for copy function
+        this._joinCommand = joinCommand;
+        this._sshKey = sshKey;
+
+        const html = `
+          <div id="wizard-overlay">
+            <div class="wizard-modal">
+              <div class="wizard-header">
+                <h1>Settings</h1>
+                <button class="settings-btn" onclick="Wizard.close()">✕</button>
+              </div>
+              <div class="wizard-content">
+                ${joinCommand ? `
+                <div class="wizard-step highlight">
+                  <div class="step-content" style="width:100%">
+                    <h3>Add Servers</h3>
+                    <p>Run this on other servers to connect them:</p>
+                    <div class="wizard-code-box">
+                      <code>${joinCommand}</code>
+                      <button onclick="Wizard.copyText('join', this)">Copy</button>
+                    </div>
+                  </div>
+                </div>
+                ` : ''}
+
+                ${sshKey ? `
+                <div class="wizard-step">
+                  <div class="step-content" style="width:100%">
+                    <h3>SSH Public Key</h3>
+                    <p class="muted">For manual server setup:</p>
+                    <div class="wizard-code-box">
+                      <code style="font-size:0.625rem">${sshKey}</code>
+                      <button onclick="Wizard.copyText('ssh', this)">Copy</button>
+                    </div>
+                  </div>
+                </div>
+                ` : ''}
+
+                <div class="wizard-step">
+                  <div class="step-content" style="width:100%">
+                    <h3>Dashboard</h3>
+                    <p class="muted" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;margin-bottom:0.75rem">
+                      Config: /opt/conduit-dashboard/.env
+                    </p>
+                    <button class="wizard-btn wizard-btn-secondary" onclick="Wizard.updateDashboard(this)" style="font-size:0.75rem">Update Dashboard</button>
+                  </div>
+                </div>
+              </div>
+              <div class="wizard-footer">
+                <div></div>
+                <button class="wizard-btn wizard-btn-primary" onclick="Wizard.close()">Close</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (document.getElementById('wizard-overlay')) {
+          document.getElementById('wizard-overlay').remove();
+        }
+        document.body.insertAdjacentHTML('beforeend', html);
+      },
+
+      copyText(type, btn) {
+        const text = type === 'join' ? this._joinCommand : this._sshKey;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = 'Copy', 1500);
+        });
+      },
+
+      async updateDashboard(btn) {
+        if (!confirm('Update dashboard to latest version? The page will reload.')) return;
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+        try {
+          const res = await fetch('/api/update-dashboard', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            btn.textContent = 'Restarting...';
+            setTimeout(() => location.reload(), 3000);
+          } else {
+            alert('Update failed: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            btn.textContent = 'Update Dashboard';
+          }
+        } catch (e) {
+          alert('Update failed: ' + e.message);
+          btn.disabled = false;
+          btn.textContent = 'Update Dashboard';
+        }
+      }
+    };
+
+    // Initialize wizard on page load
+    Wizard.init();
+
+    // Handle empty state in nodes
+    const origFetchStats = fetchStats;
+    fetchStats = async function() {
+      await origFetchStats();
+      const nodesEl = document.getElementById('nodes');
+      const nodes = nodesEl.querySelectorAll('.node');
+      if (nodes.length === 0 && !nodesEl.querySelector('.empty-state')) {
+        nodesEl.innerHTML = `
+          <div class="empty-state">
+            <h3>No servers connected</h3>
+            <p>Add your first server to start monitoring.</p>
+            <button onclick="Wizard.show()">Setup Guide</button>
+          </div>
+        `;
+      }
+    };
+  </script>
+</body>
+</html>
