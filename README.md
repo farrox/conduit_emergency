@@ -35,6 +35,12 @@ Get Conduit running in minutes! Choose the method that works best for you:
 
 **Perfect for:** Mac users who want the simplest setup with a beautiful UI
 
+**Run directly from GitHub:**
+```bash
+curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
+```
+
+**Or download and run:**
 ```bash
 ./scripts/conduit-manager-mac.sh
 ```
@@ -42,7 +48,8 @@ Get Conduit running in minutes! Choose the method that works best for you:
 ✅ No building required  
 ✅ Beautiful live dashboard  
 ✅ Automatic updates  
-✅ Smart start/stop/restart
+✅ Smart start/stop/restart  
+✅ Can be run directly from GitHub URL
 
 See [Docker Manager Guide](docs/markdown/CONDUIT_MANAGER_MAC.md) for details.
 

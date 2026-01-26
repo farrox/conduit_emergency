@@ -7,6 +7,14 @@
 # Original Author: polamgh
 # Integrated into conduit_emergency project with permission
 #
+# Direct Link (Run from GitHub):
+# curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
+#
+# Or download and run:
+# curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh -o conduit-manager-mac.sh
+# chmod +x conduit-manager-mac.sh
+# ./conduit-manager-mac.sh
+#
 
 # --- CONFIGURATION ---
 CONTAINER_NAME="conduit-mac"
