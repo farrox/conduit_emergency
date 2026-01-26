@@ -1,5 +1,7 @@
 # Conduit CLI - Quick Start for Non-Technical Users
 
+**⚠️ For Mac users, see [QUICKSTART_MAC.md](QUICKSTART_MAC.md) for the simplest step-by-step guide!**
+
 **Emergency Deployment Guide**
 
 ## 🚀 Fastest Way to Run (If Binary Exists)
