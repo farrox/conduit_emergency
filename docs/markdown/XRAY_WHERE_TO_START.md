@@ -68,3 +68,37 @@ These generate a server config and often set up systemd or Docker.
 | **Run alongside Conduit** | Yes, separate container/process | Yes, separate process, different ports |
 
 Both can run on the same server as Conduit without conflict.
+
+---
+
+## Test Xray locally
+
+A minimal test config is included so you can verify Xray starts without setting up a full server.
+
+### macOS (binary)
+
+```bash
+# Install Xray
+brew install xray
+
+# Run using the project’s test config (VMess on port 10086)
+cd /path/to/conduit_emergency
+xray run -c scripts/xray-test-config.json
+```
+
+You should see something like: `[Info] transport/internet/tcp: listening TCP on 0.0.0.0:10086` and `Xray ... started`. Stop with Ctrl+C. The config in `scripts/xray-test-config.json` is for local testing only (VMess, no TLS); replace it with a proper server config for real use.
+
+### Docker
+
+With Docker running, use the same config:
+
+```bash
+cd /path/to/conduit_emergency
+docker run -d --name xray-test \
+  -v "$(pwd)/scripts/xray-test-config.json:/etc/xray/config.json:ro" \
+  -p 10086:10086 \
+  --restart no \
+  ghcr.io/xtls/xray-core:latest
+docker logs xray-test   # verify “listening TCP on ...” and “started”
+docker stop xray-test
+```

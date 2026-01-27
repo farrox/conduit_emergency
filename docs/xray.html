@@ -148,6 +148,28 @@
             </table>
             <p>Both can run on the same server as Conduit without conflict.</p>
 
+            <h3>Test Xray locally</h3>
+            <p>A minimal test config is included so you can verify Xray starts without setting up a full server.</p>
+            <p><strong>macOS (binary):</strong></p>
+            <div class="code-block">
+                <pre><code># Install Xray
+brew install xray
+
+# Run using the project's test config (VMess on port 10086)
+cd /path/to/conduit_emergency
+xray run -c scripts/xray-test-config.json</code></pre>
+            </div>
+            <p>You should see <em>listening TCP on 0.0.0.0:10086</em> and <em>Xray ... started</em>. Stop with Ctrl+C. The config in <code>scripts/xray-test-config.json</code> is for local testing only (VMess, no TLS); replace it with a proper server config for real use.</p>
+            <p><strong>Docker:</strong> With Docker running:</p>
+            <div class="code-block">
+                <pre><code>docker run -d --name xray-test \
+  -v "$(pwd)/scripts/xray-test-config.json:/etc/xray/config.json:ro" \
+  -p 10086:10086 --restart no \
+  ghcr.io/xtls/xray-core:latest
+docker logs xray-test   # verify "listening TCP on ..." and "started"
+docker stop xray-test</code></pre>
+            </div>
+
             <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
 
             <h3>Markdown Version</h3>
