@@ -63,6 +63,14 @@
                 <li><strong>Stop:</strong> <code>docker stop snowflake-proxy</code>. To remove the container: <code>docker rm snowflake-proxy</code> (after stopping).</li>
             </ul>
 
+            <h3>How to see how effective your Snowflake is</h3>
+            <ul>
+                <li><strong>Watch the logs:</strong> <code>docker logs -f snowflake-proxy</code>. When your proxy helps Tor users, it prints lines like: <em>“In the last 1h0m0s, there were N completed connections. Traffic Relayed ↓ X KB, ↑ Y KB.”</em> “Completed connections” = successful sessions you helped; “Traffic Relayed” = download/upload in that window (often every ~1 hour when there’s activity).</li>
+                <li><strong>At first</strong> you may only see “Proxy starting” and “NAT type: restricted”. The “Traffic Relayed” / “completed connections” lines appear once the broker has assigned you to clients and they’ve used the tunnel. On a home connection with restricted NAT it can take time; on a VPS it’s often sooner.</li>
+                <li><strong>Optional: sum traffic and connections from logs.</strong> Community scripts parse <code>docker logs snowflake-proxy</code> for “Traffic Relayed” and report total GB and connection count, e.g. <a href="https://gist.github.com/Atrate/be4a7d308549c7a9fe281d2cdf578d21" target="_blank" rel="noopener">snowstats.sh</a> or <a href="https://github.com/HeIIow2/snowflake-stats" target="_blank" rel="noopener">snowflake-stats</a>. Log format can change; if numbers look wrong, double-check against raw log lines.</li>
+                <li><strong>Network-wide stats only:</strong> <a href="https://metrics.torproject.org/userstats-bridge-transport.html?transport=snowflake" target="_blank" rel="noopener">Tor Metrics – bridge users by transport (Snowflake)</a> shows Snowflake usage across the whole network, not per-proxy. Use it to see how big Snowflake is overall, not “how much is my proxy doing.”</li>
+            </ul>
+
             <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
 
             <h2>Where to Start</h2>

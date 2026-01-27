@@ -31,6 +31,15 @@ To run in background: add `&` at the end, or use `nohup ./snowflake-proxy &`. To
 - **“NAT type: restricted” in logs:** Normal on a home Mac or consumer connection. The proxy still works and helps Tor users; Tor recommends full-cone/unrestricted NAT for maximum capacity. For more concurrent users, run the same Docker command on a VPS (e.g. same server as Conduit) where NAT is usually unrestricted.
 - **Stop:** `docker stop snowflake-proxy`. To remove the container: `docker rm snowflake-proxy` (after stopping).
 
+### How to see how effective your Snowflake is
+
+- **Watch the logs:** `docker logs -f snowflake-proxy`. When your proxy helps Tor users, it prints lines like:
+  - `In the last 1h0m0s, there were N completed connections. Traffic Relayed ↓ X KB, ↑ Y KB.`
+  - “completed connections” = successful sessions you helped; “Traffic Relayed” = download ↑ and upload ↓ in that window (often every ~1 hour when there’s activity).
+- **At first you may only see** “Proxy starting” and “NAT type: restricted”. The “Traffic Relayed” / “completed connections” lines appear once the broker has assigned you to clients and they’ve used the tunnel. On a home connection with restricted NAT it can take time; on a VPS it’s often sooner.
+- **Optional: sum traffic and connections from logs.** Community scripts parse `docker logs snowflake-proxy` for “Traffic Relayed” and report total GB and connection count, e.g. [snowstats.sh](https://gist.github.com/Atrate/be4a7d308549c7a9fe281d2cdf578d21) or [snowflake-stats](https://github.com/HeIIow2/snowflake-stats). Log format can change; if numbers look wrong, double‑check against raw log lines.
+- **Network-wide stats only:** [Tor Metrics – bridge users by transport](https://metrics.torproject.org/userstats-bridge-transport.html?transport=snowflake) shows Snowflake usage across the whole network, not per‑proxy. Use it to see how big Snowflake is overall, not “how much is my proxy doing.”
+
 ---
 
 ## 1. Official Tor Snowflake (run a Snowflake proxy)
