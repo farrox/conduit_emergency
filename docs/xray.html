@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xray Guide - Conduit CLI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="container">
+                <h1>Conduit CLI</h1>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="quickstart.html">Quick Start</a></li>
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="install.html">Installation</a></li>
+                    <li><a href="setup.html">Setup</a></li>
+                    <li><a href="usage.html">Usage</a></li>
+                    <li><a href="snowflake.html">Snowflake</a></li>
+                    <li><a href="xray.html" class="active">Xray</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="content">
+            <h2>Adding Xray Alongside Conduit</h2>
+            <p><strong>A guide to adding Xray</strong> (XTLS/Xray-core) alongside Conduit. Xray is a proxy platform for censorship circumvention using VLESS, VMess, Trojan, REALITY, and more. You run an <strong>Xray server</strong>; users connect with Xray clients (e.g. v2rayN, Hiddify, Sing-box).</p>
+
+            <h3>What is Xray?</h3>
+            <p>Xray (XTLS/Xray-core) is an open platform for proxies and censorship circumvention. It is an improved v2ray-core with protocols like VLESS, VMess, Trojan, REALITY, XUDP, and more. It uses JSON configs for inbounds, outbounds, and routing.</p>
+
+            <h3>How This Fits With Conduit</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Role</th>
+                        <th>Typical use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Conduit</td>
+                        <td>Psiphon inproxy</td>
+                        <td>Iranians via Psiphon network</td>
+                    </tr>
+                    <tr>
+                        <td>Snowflake</td>
+                        <td>Tor proxy</td>
+                        <td>Tor users</td>
+                    </tr>
+                    <tr>
+                        <td>Xray</td>
+                        <td>Your own proxy server</td>
+                        <td>Users with Xray/v2ray clients</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>You can run <strong>Xray on the same machine</strong> as Conduit and Snowflake. Use different ports in Xray’s <code>config.json</code> (e.g. 443, 8443, 10086) so it does not conflict with Conduit.</p>
+
+            <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
+
+            <h2>Where to Start</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Resource</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Code (GitHub)</td>
+                        <td><a href="https://github.com/XTLS/Xray-core" target="_blank" rel="noopener">github.com/XTLS/Xray-core</a></td>
+                    </tr>
+                    <tr>
+                        <td>Docs</td>
+                        <td><a href="https://xtls.github.io" target="_blank" rel="noopener">xtls.github.io</a></td>
+                    </tr>
+                    <tr>
+                        <td>Install</td>
+                        <td><a href="https://xtls.github.io/en/document/install.html" target="_blank" rel="noopener">Install guide</a></td>
+                    </tr>
+                    <tr>
+                        <td>Examples</td>
+                        <td><a href="https://github.com/XTLS/Xray-examples" target="_blank" rel="noopener">XTLS/Xray-examples</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Quickest Ways to Run an Xray Server</h3>
+            <p>Xray always needs a <strong>config file</strong> (inbounds, outbounds, users). There is no one-command zero-config option like Snowflake.</p>
+
+            <h4>1. Binary + config</h4>
+            <ol>
+                <li><strong>Get a binary:</strong> <a href="https://github.com/XTLS/Xray-core/releases" target="_blank" rel="noopener">Releases</a> or <code>brew install xray</code> (macOS).</li>
+                <li><strong>Use a minimal server example:</strong> e.g. <a href="https://github.com/XTLS/Xray-examples/tree/main/VLESS-TCP-XTLS-Vision" target="_blank" rel="noopener">VLESS-TCP-XTLS-Vision</a> or <a href="https://github.com/XTLS/Xray-examples" target="_blank" rel="noopener">Xray-examples</a>.</li>
+                <li><strong>Run:</strong> <code>xray run -c /path/to/config.json</code></li>
+            </ol>
+
+            <h4>2. Docker</h4>
+            <p><strong>Image:</strong> <code>ghcr.io/xtls/xray-core</code>. You must create a <code>config.json</code> and mount it into the container (see <a href="https://github.com/XTLS/Xray-core" target="_blank" rel="noopener">Xray-core README</a>).</p>
+
+            <h4>3. One-click / install script</h4>
+            <ul>
+                <li><strong>Official:</strong> <a href="https://github.com/XTLS/Xray-install" target="_blank" rel="noopener">XTLS/Xray-install</a> (Linux).</li>
+                <li><strong>One-click setups:</strong> <a href="https://github.com/zxcvos/Xray-script" target="_blank" rel="noopener">Xray-REALITY</a>, <a href="https://github.com/sajjaddg/xray-reality" target="_blank" rel="noopener">xray-reality</a>, <a href="https://github.com/mack-a/v2ray-agent" target="_blank" rel="noopener">v2ray-agent</a>, <a href="https://github.com/wulabing/Xray_onekey" target="_blank" rel="noopener">Xray_onekey</a>.</li>
+            </ul>
+
+            <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
+
+            <h2>One-Line “Where to Start”</h2>
+            <ul>
+                <li><strong>“I want to run an Xray server alongside Conduit”</strong> → <a href="https://github.com/XTLS/Xray-core" target="_blank" rel="noopener">https://github.com/XTLS/Xray-core</a> and <a href="https://xtls.github.io" target="_blank" rel="noopener">xtls.github.io</a>. Install a binary or use Xray-install / a one-click script, create or generate a server <code>config.json</code>, then run Xray on its own ports.</li>
+                <li><strong>“I want ready-made server examples”</strong> → <a href="https://github.com/XTLS/Xray-examples" target="_blank" rel="noopener">XTLS/Xray-examples</a> — copy a server example, adjust ports/users, and run with <code>xray run -c config.json</code>.</li>
+            </ul>
+
+            <h3>Comparison with Snowflake</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Snowflake (Tor)</th>
+                        <th>Xray</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Config</strong></td>
+                        <td>One Docker command, no config</td>
+                        <td>Requires <code>config.json</code> (inbounds, users, etc.)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Who uses it</strong></td>
+                        <td>Tor Browser / Orbot users</td>
+                        <td>Any client with VLESS/VMess/etc. (v2rayN, Hiddify, etc.)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Run alongside Conduit</strong></td>
+                        <td>Yes, separate container/process</td>
+                        <td>Yes, separate process, different ports</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Both can run on the same server as Conduit without conflict.</p>
+
+            <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
+
+            <h3>Markdown Version</h3>
+            <p>A concise “where to start” reference is available as markdown:</p>
+            <p><a href="markdown/XRAY_WHERE_TO_START.md">XRAY_WHERE_TO_START.md</a></p>
+
+            <h3>Community & Acknowledgements</h3>
+            <p>This project incorporates and references excellent community contributions:</p>
+            <ul>
+                <li><a href="https://github.com/polamgh/conduit-manager-mac">Conduit Manager for macOS</a> - Docker-based management tool (by polamgh)</li>
+                <li><a href="https://github.com/SamNet-dev/conduit-manager">Conduit Manager (Linux)</a> - One-click Linux management with live peer mapping (by SamNet-dev)</li>
+                <li><a href="https://github.com/paradixe/conduit-relay">Conduit Relay</a> - Web dashboard with fleet management (by paradixe)</li>
+                <li><a href="https://github.com/SamNet-dev/iran-conduit-firewall">Iran Conduit Firewall</a> - Windows firewall solution (by SamNet-dev)</li>
+            </ul>
+            <p>See <a href="../ACKNOWLEDGEMENTS.md">ACKNOWLEDGEMENTS.md</a> for full credits and links. Xray is developed by the XTLS project.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Conduit CLI. GNU General Public License v3.0</p>
+        </div>
+    </footer>
+</body>
+</html>

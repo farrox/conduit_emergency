@@ -334,6 +334,10 @@ Keys and state are stored in the data directory (default: `./data`):
 - **[Cloud Deployment](docs/markdown/DEPLOY_CLOUD.md)** - Deploy to DigitalOcean, Linode, Hetzner, AWS, etc.
 - **[Deployment TODO](DEPLOY_TODO.md)** - Quick reference checklist
 
+### Run alongside Conduit
+- **[Snowflake Guide](docs/markdown/SNOWFLAKE_WHERE_TO_START.md)** - Run Tor Snowflake proxy alongside Conduit
+- **[Xray Guide](docs/markdown/XRAY_WHERE_TO_START.md)** - Run Xray (VLESS/VMess/REALITY) server alongside Conduit
+
 ### HTML Documentation
 - **[HTML Docs](docs/index.html)** - Beautiful web-based documentation
 
