@@ -12,15 +12,20 @@
 
 ## 📊 Live Dashboard
 
-Monitor your Conduit node in real-time with the built-in dashboard:
+One dashboard works for **Docker** and **native** Conduit: CPU, RAM, connected users, and traffic in real time.
 
 ![Live Dashboard](resources/dashboard.png)
 
-*The dashboard shows connected Iranians, CPU/RAM usage, and traffic statistics in real-time.*
+**View dashboard** (Conduit already running — Docker or native):
+```bash
+./scripts/dashboard.sh
+```
 
-**Quick Start with Dashboard:**
+**Start Conduit + dashboard** (native, from source):
 ```bash
 ./scripts/start-with-dashboard.sh
+# or (Option 2–style, one terminal):
+./scripts/test-option2-dashboard.sh
 ```
 
 See the [Dashboard Guide](docs/markdown/DASHBOARD.md) for full documentation.
@@ -122,12 +127,14 @@ See [Get Config Guide](docs/markdown/GET_CONFIG.md) for all options.
 
 ### 2. Start Conduit
 
-**With Dashboard (Recommended):**
+**With dashboard (recommended):**
 ```bash
 ./scripts/start-with-dashboard.sh
+# or from-source “Option 2” style:
+./scripts/test-option2-dashboard.sh
 ```
 
-**Manual Start:**
+**Manual start:**
 ```bash
 ./dist/conduit start \
   --psiphon-config ./psiphon_config.json \
@@ -135,9 +142,8 @@ See [Get Config Guide](docs/markdown/GET_CONFIG.md) for all options.
   --stats-file
 ```
 
-**View Dashboard:**
+**View dashboard** (works for Docker or native; run in another terminal if Conduit is already running):
 ```bash
-# In another terminal
 ./scripts/dashboard.sh
 ```
 

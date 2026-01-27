@@ -1,52 +1,50 @@
-# Live Dashboard for CLI Version
+# Live Dashboard
 
-The CLI version now includes a live dashboard similar to the Docker version, showing real-time monitoring of your Conduit node.
+One dashboard works for **Docker** and **native** Conduit: real-time monitoring in the same style as Option 1 (Docker) and Option 2 (DMG).
 
 ![Live Dashboard Screenshot](../resources/dashboard.png)
 
-*The dashboard shows real-time monitoring of your Conduit node, including connected Iranians, CPU/RAM usage, and traffic statistics.*
+*Connected users, CPU/RAM, and traffic in real time. Auto-detects Docker (conduit-mac container) or native process.*
 
 ## Quick Start
 
-### Option 1: Start with Dashboard (Easiest)
+### View dashboard (Conduit already running)
 
+Works for **Docker** or **native**. Run in the same or another terminal:
+
+```bash
+./scripts/dashboard.sh
+```
+
+### Start Conduit + dashboard (from source)
+
+**Option A — two terminals (recommended):**
 ```bash
 ./scripts/start-with-dashboard.sh
 ```
+Starts Conduit with stats and opens the dashboard in a new terminal.
 
-This will:
-1. Start Conduit with stats enabled
-2. Open the dashboard in a new terminal window
+**Option B — one terminal (Option 2–style):**
+```bash
+./scripts/test-option2-dashboard.sh
+```
+Starts Conduit and runs the dashboard in the same window. Ctrl+C stops both.
 
-### Option 2: Manual Start
+### Manual start, then dashboard
 
-1. **Start Conduit with stats enabled:**
-   ```bash
-   ./dist/conduit start \
-     --psiphon-config ./psiphon_config.json \
-     --max-clients 50 \
-     --bandwidth 5 \
-     -v \
-     --stats-file
-   ```
-
-2. **In another terminal, run the dashboard:**
-   ```bash
-   ./scripts/dashboard.sh
-   ```
+1. Start Conduit with stats (e.g. `./dist/conduit start -v --stats-file -d ~/.conduit/data` or use Docker menu).
+2. Run `./scripts/dashboard.sh` in another terminal.
 
 ## Dashboard Features
 
 The dashboard displays:
 
-- **Status**: Online/Offline indicator
-- **PID**: Process ID
+- **Status**: Online/Offline (and “Docker” when using the container)
 - **Uptime**: How long Conduit has been running
-- **CPU**: CPU usage percentage
+- **CPU**: CPU usage
 - **RAM**: Memory usage
-- **Iranians**: Number of connected Iranians
-- **Up**: Upload traffic (bytes sent)
-- **Down**: Download traffic (bytes received)
+- **Users**: Connected users
+- **Up** / **Down**: Upload and download traffic
 
 The dashboard auto-refreshes every 5 seconds.
 
@@ -73,17 +71,16 @@ The optimal configuration script now automatically enables stats:
 
 This creates a launcher that includes `--stats-file`, so the dashboard will work automatically.
 
-## Dashboard vs Docker Version
+## One Dashboard for Docker and Native
 
-| Feature | CLI Dashboard | Docker Dashboard |
-|---------|---------------|------------------|
-| **CPU/RAM** | ✅ Process monitoring | ✅ Container stats |
-| **Connected Iranians** | ✅ From stats file | ✅ From logs |
-| **Traffic** | ✅ From stats file | ✅ From logs |
-| **Auto-refresh** | ✅ Every 5 seconds | ✅ Every 10 seconds |
-| **UI** | ✅ Terminal-based | ✅ Terminal-based |
+`./scripts/dashboard.sh` auto-detects how Conduit is running:
 
-Both provide the same information, just using different methods to gather it.
+| Running as | How dashboard gets data |
+|------------|-------------------------|
+| **Docker** (conduit-mac container) | `docker stats` + container logs |
+| **Native** (conduit process) | Process stats + `~/.conduit/data/stats.json` or log parsing |
+
+Same layout and refresh (5 seconds) in both cases.
 
 ## Troubleshooting
 
@@ -93,8 +90,7 @@ Both provide the same information, just using different methods to gather it.
 - Check: `ls -la data/stats.json`
 
 ### "Conduit is not running"
-- Start Conduit first in another terminal
-- Or use `./scripts/start-with-dashboard.sh` to start both
+- Start Conduit first (Docker: `./scripts/conduit-manager-mac.sh`; native: `./scripts/test-option2-dashboard.sh` or `./scripts/start-with-dashboard.sh`)
 
 ### Stats showing 0
 - Stats are only updated when there's activity
@@ -115,21 +111,19 @@ Both provide the same information, just using different methods to gather it.
  ██║     ██║   ██║██║╚██╗██║██║  ██║██║   ██║██║   ██║   
  ╚██████╗╚██████╔╝██║ ╚████║██████╔╝╚██████╔╝██║   ██║   
   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝  ╚═════╝ ╚═╝   ╚═╝   
-              CLI Live Dashboard                  
+              Live Dashboard                  
 
-LIVE DASHBOARD (Press Ctrl+C to Exit)
+LIVE DASHBOARD (Press Ctrl+C to exit)
 ══════════════════════════════════════════════════════
  STATUS:      ● ONLINE
- PID:         12345
  UPTIME:      5:23
 ──────────────────────────────────────────────────────
  RESOURCES    | TRAFFIC
 ──────────────────────────────────────────────────────
- CPU: 2.5%    | Iranians: 15
+ CPU: 2.5%    | Users:  15
  RAM: 12.3M    | Up:   1.2MB
               | Down: 3.4MB
 ══════════════════════════════════════════════════════
-📊 Stats: /path/to/data/stats.json
 Refreshing every 5 seconds...
 ```
 

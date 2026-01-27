@@ -127,35 +127,16 @@ conduit start --psiphon-config ./psiphon_config.json -vv</code></pre>
             </ul>
 
             <h3>Live Dashboard</h3>
-            <p>Monitor your Conduit node in real-time with the built-in dashboard. Start Conduit with the <code>--stats-file</code> flag to enable statistics:</p>
-            <div class="code-block">
-                <pre><code>conduit start \
-  --psiphon-config ./psiphon_config.json \
-  --max-clients 100 \
-  --bandwidth 10 \
-  -v \
-  --stats-file</code></pre>
-            </div>
-            <p>Then run the dashboard in another terminal:</p>
+            <p>One dashboard works for <strong>Docker</strong> and <strong>native</strong> Conduit. View it with:</p>
             <div class="code-block">
                 <pre><code>./scripts/dashboard.sh</code></pre>
             </div>
-            <p>Or use the convenience script:</p>
-            <div class="code-block">
-                <pre><code>./scripts/start-with-dashboard.sh</code></pre>
-            </div>
+            <p>Start Conduit + dashboard (from source): <code>./scripts/start-with-dashboard.sh</code> or <code>./scripts/test-option2-dashboard.sh</code> (Option 2–style, one terminal).</p>
             <div style="text-align: center; margin: 2rem 0;">
                 <img src="resources/dashboard.png" alt="Conduit Live Dashboard" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid #e0e0e0;">
-                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">Live Dashboard showing real-time monitoring</p>
+                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">Live Dashboard (Docker or native)</p>
             </div>
-            <p>The dashboard shows:</p>
-            <ul>
-                <li>✅ Online/Offline status</li>
-                <li>✅ CPU and RAM usage</li>
-                <li>✅ Number of connected Iranians</li>
-                <li>✅ Upload and download traffic</li>
-                <li>✅ Auto-refreshes every 5 seconds</li>
-            </ul>
+            <p>The dashboard shows: Online/Offline, CPU/RAM, connected users, Up/Down traffic, and refreshes every 5 seconds.</p>
             <p><a href="markdown/DASHBOARD.md">Full dashboard documentation →</a></p>
 
             <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">

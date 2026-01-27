@@ -138,27 +138,25 @@ cd conduit_emergency
                 <li>✅ Docker support with embedded configuration</li>
                 <li>✅ Cross-platform builds</li>
                 <li>✅ Beautiful management UI (Docker Manager)</li>
-                <li>✅ Live dashboard for monitoring (CLI version)</li>
+                <li>✅ Live dashboard for monitoring (Docker + native)</li>
                 <li>✅ Optimal configuration helpers</li>
             </ul>
 
             <h3>Live Dashboard</h3>
-            <p>Monitor your Conduit node in real-time with the built-in dashboard. See connected Iranians, CPU/RAM usage, and traffic statistics.</p>
+            <p>One dashboard works for <strong>Docker</strong> and <strong>native</strong> Conduit: connected users, CPU/RAM, and traffic in real time.</p>
             <div style="text-align: center; margin: 2rem 0;">
                 <img src="resources/dashboard.png" alt="Conduit Live Dashboard" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid #e0e0e0;">
-                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">Live Dashboard showing real-time monitoring</p>
+                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">Live Dashboard (Docker or native)</p>
             </div>
-            <p>To use the dashboard:</p>
+            <p><strong>View dashboard</strong> (Conduit already running):</p>
             <div class="code-block">
-                <pre><code># Start Conduit with stats enabled
-./dist/conduit start --psiphon-config ./psiphon_config.json -v --stats-file
-
-# In another terminal, run the dashboard
-./scripts/dashboard.sh</code></pre>
+                <pre><code>./scripts/dashboard.sh</code></pre>
             </div>
-            <p>Or use the convenience script that starts both:</p>
+            <p><strong>Start Conduit + dashboard</strong> (from source):</p>
             <div class="code-block">
-                <pre><code>./scripts/start-with-dashboard.sh</code></pre>
+                <pre><code>./scripts/start-with-dashboard.sh
+# or Option 2–style (one terminal):
+./scripts/test-option2-dashboard.sh</code></pre>
             </div>
             <p><a href="markdown/DASHBOARD.md">Learn more about the dashboard →</a></p>
 
