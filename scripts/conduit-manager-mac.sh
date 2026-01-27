@@ -30,6 +30,15 @@ SCRIPT_VERSION="1.0"
 # Backup dir for node identity key (user-local, no root)
 BACKUP_DIR="${HOME}/.conduit-mac/backups"
 
+# State dir for optional tooling (GeoIP DB, caches, etc.)
+STATE_DIR="${HOME}/.conduit-mac"
+
+# Optional: Peer IP and GeoIP tooling (runs OUTSIDE the Conduit container)
+INSPECTOR_IMAGE="${CONDUIT_INSPECTOR_IMAGE:-nicolaka/netshoot:latest}"
+GEOIP_INSPECTOR_IMAGE="${CONDUIT_GEOIP_INSPECTOR_IMAGE:-conduit-geoip-inspector:latest}"
+GEOIP_DB_DIR="${CONDUIT_GEOIP_DB_DIR:-${STATE_DIR}/geoip}"
+GEOIP_DB_PATH="${CONDUIT_GEOIP_DB_PATH:-${GEOIP_DB_DIR}/dbip-country-lite.mmdb}"
+
 # Defaults (override via flags or env)
 DEFAULT_MAX_CLIENTS="${CONDUIT_MAX_CLIENTS:-200}"
 DEFAULT_BANDWIDTH="${CONDUIT_BANDWIDTH:-5}"
@@ -46,6 +55,191 @@ NC='\033[0m'
 # --- LOG HELPERS ---
 log_info() { echo -e "${BLUE}$*${NC}"; }
 log_err()  { echo -e "${RED}$*${NC}"; }
+
+ensure_container_running() {
+  if ! docker ps 2>/dev/null | grep -q "$CONTAINER_NAME"; then
+    log_err "Conduit is not running. Start it first."
+    return 1
+  fi
+  return 0
+}
+
+ensure_inspector_image() {
+  if ! docker image inspect "$INSPECTOR_IMAGE" >/dev/null 2>&1; then
+    log_info "Pulling inspector image: $INSPECTOR_IMAGE"
+    docker pull "$INSPECTOR_IMAGE" >/dev/null 2>&1 || true
+  fi
+}
+
+ensure_geoip_inspector_image() {
+  # Build once locally so we don't apk-add every run.
+  if docker image inspect "$GEOIP_INSPECTOR_IMAGE" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  log_info "Building GeoIP inspector image: $GEOIP_INSPECTOR_IMAGE"
+  docker build -t "$GEOIP_INSPECTOR_IMAGE" - >/dev/null <<'EOF'
+FROM nicolaka/netshoot:latest
+RUN apk add --no-cache python3 py3-geoip2 ca-certificates
+WORKDIR /work
+EOF
+}
+
+ensure_geoip_db() {
+  mkdir -p "$GEOIP_DB_DIR"
+  if [ -f "$GEOIP_DB_PATH" ]; then
+    return 0
+  fi
+
+  local ym
+  ym="$(date +%Y-%m)"
+
+  local url="https://download.db-ip.com/free/dbip-country-lite-${ym}.mmdb.gz"
+  local gz="${GEOIP_DB_PATH}.gz"
+
+  log_info "Downloading offline GeoIP DB (DB-IP Country Lite): ${ym}"
+  log_info "Source: ${url}"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$gz"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$gz" "$url"
+  else
+    log_err "Neither curl nor wget found; cannot download GeoIP DB."
+    return 1
+  fi
+
+  gunzip -f "$gz"
+  log_info "GeoIP DB ready at: $GEOIP_DB_PATH (Attribution: DB-IP.com CC BY 4.0)"
+}
+
+get_peer_ips() {
+  ensure_container_running || return 1
+  ensure_inspector_image
+
+  docker run --rm --network "container:${CONTAINER_NAME}" "$INSPECTOR_IMAGE" sh -lc \
+    "ss -Htan state established 2>/dev/null || netstat -tn 2>/dev/null || true" \
+    | sed 's/\[//g; s/\]//g' \
+    | awk '
+      {
+        peer=$NF
+        if (peer ~ /:/) print peer
+        else if ($5 ~ /:/) print $5
+      }
+    ' \
+    | awk -F':' '{print $1}' \
+    | grep -E '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' \
+    | sort -u
+}
+
+show_connections() {
+  ensure_container_running || return 1
+  ensure_inspector_image
+
+  cat <<'EOF'
+NOTE:
+  - This prints the IPs of *direct peers* connected to your node.
+  - Depending on routing, these IPs may be relays/NATs, not end users.
+EOF
+  echo ""
+
+  get_peer_ips | sort | uniq -c | sort -nr | head -50 || true
+}
+
+get_top_countries() {
+  # Output: "<count>\t<country>"
+  ensure_container_running || return 1
+  ensure_geoip_inspector_image >/dev/null 2>&1 || return 1
+  ensure_geoip_db >/dev/null 2>&1 || return 1
+
+  # Single container execution: list connections + GeoIP mapping in one process.
+  docker run --rm \
+    --network "container:${CONTAINER_NAME}" \
+    -v "${GEOIP_DB_PATH}:/db.mmdb:ro" \
+    "$GEOIP_INSPECTOR_IMAGE" \
+    python3 -c '
+import re
+import subprocess
+from collections import Counter
+import geoip2.database
+
+def get_lines():
+    try:
+        out = subprocess.check_output(["ss","-Htan","state","established"], text=True, stderr=subprocess.DEVNULL)
+        return out.splitlines()
+    except Exception:
+        try:
+            out = subprocess.check_output(["netstat","-tn"], text=True, stderr=subprocess.DEVNULL)
+            return out.splitlines()
+        except Exception:
+            return []
+
+ip_re = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+ips = set()
+for line in get_lines():
+    for ip in ip_re.findall(line):
+        ips.add(ip)
+
+if not ips:
+    raise SystemExit(0)
+
+counts = Counter()
+with geoip2.database.Reader("/db.mmdb") as reader:
+    for ip in ips:
+        try:
+            resp = reader.country(ip)
+            name = resp.country.name or resp.country.iso_code or "Unknown"
+            counts[name] += 1
+        except Exception:
+            counts["Unknown"] += 1
+
+for name, c in counts.most_common(5):
+    print(f"{c}\t{name}")
+' 2>/dev/null || true
+}
+
+show_countries() {
+  ensure_container_running || return 1
+  ensure_geoip_inspector_image
+  ensure_geoip_db
+
+  cat <<'EOF'
+NOTE:
+  - Country mapping is OFFLINE using DB-IP Country Lite (MMDB).
+  - This maps peer IPs (direct connections). These may be relays/NATs, not end users.
+EOF
+  echo ""
+
+  # Reuse top-countries engine but show more (top 25)
+  get_peer_ips \
+    | docker run --rm -i -v "${GEOIP_DB_PATH}:/db.mmdb:ro" "$GEOIP_INSPECTOR_IMAGE" \
+      python3 -c '
+import sys
+from collections import Counter
+import geoip2.database
+import geoip2.errors
+
+ips = [line.strip() for line in sys.stdin if line.strip()]
+counts = Counter()
+unknown = 0
+with geoip2.database.Reader("/db.mmdb") as reader:
+    for ip in ips:
+        try:
+            resp = reader.country(ip)
+            name = resp.country.name or resp.country.iso_code or "Unknown"
+            counts[name] += 1
+        except Exception:
+            unknown += 1
+
+for name, c in counts.most_common(25):
+    print(f"{c:4d}  {name}")
+if unknown:
+    print(f"{unknown:4d}  Unknown")
+' 2>/dev/null || true
+
+  echo ""
+  log_info "Attribution: DB-IP.com (CC BY 4.0)"
+}
 
 # --- DOCKER: REQUIRE CLI + AUTO-START DESKTOP ---
 require_docker_cli() {
@@ -88,6 +282,18 @@ ensure_docker_desktop_running() {
 # --- UTILS ---
 print_header() {
     clear
+    echo -e "${CYAN}"
+    echo "  ██████╗ ██████╗ ███╗   ██╗██████╗ ██╗   ██╗██╗████████╗"
+    echo " ██╔════╝██╔═══██╗████╗  ██║██╔══██╗██║   ██║██║╚══██╔══╝"
+    echo " ██║     ██║   ██║██╔██╗ ██║██║  ██║██║   ██║██║   ██║   "
+    echo " ██║     ██║   ██║██║╚██╗██║██║  ██║██║   ██║██║   ██║   "
+    echo " ╚██████╗╚██████╔╝██║ ╚████║██████╔╝╚██████╔╝██║   ██║   "
+    echo "  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝  ╚═════╝ ╚═╝   ╚═╝   "
+    echo -e "              ${YELLOW}macOS Professional Edition${CYAN}                  "
+    echo -e "${NC}"
+}
+
+print_header_noclear() {
     echo -e "${CYAN}"
     echo "  ██████╗ ██████╗ ███╗   ██╗██████╗ ██╗   ██╗██╗████████╗"
     echo " ██╔════╝██╔═══██╗████╗  ██║██╔══██╗██║   ██║██║╚══██╔══╝"
@@ -194,12 +400,31 @@ stop_service() {
 }
 
 view_dashboard() {
-    trap "break" SIGINT
+    local stop_dashboard=0
+    trap 'stop_dashboard=1' SIGINT SIGTERM
 
-    while true; do
-        print_header
-        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)"
-        echo "══════════════════════════════════════════════════════"
+    local EL="\033[K"
+    tput smcup 2>/dev/null || true
+    echo -ne "\033[?25l" # Hide cursor
+    clear
+
+    # Best-effort GeoIP init (doesn't break dashboard)
+    local GEOIP_READY=0
+    if ( ensure_geoip_inspector_image && ensure_geoip_db ) >/dev/null 2>&1; then
+      GEOIP_READY=1
+    fi
+    local LAST_GEOIP_TS=0
+    local GEOIP_CACHE_FILE="${TMPDIR:-/tmp}/conduit_geoip_top5_${CONTAINER_NAME}.txt"
+    local GEOIP_JOB_PID=0
+
+    while [ "$stop_dashboard" -eq 0 ]; do
+        if ! tput cup 0 0 2>/dev/null; then
+          printf "\033[H"
+        fi
+
+        print_header_noclear
+        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)${EL}"
+        echo -e "══════════════════════════════════════════════════════${EL}"
 
         if docker ps 2>/dev/null | grep -q "$CONTAINER_NAME"; then
             DOCKER_STATS=$(docker stats --no-stream --format "{{.CPUPerc}}|{{.MemUsage}}" "$CONTAINER_NAME" 2>/dev/null)
@@ -219,27 +444,82 @@ view_dashboard() {
 
             UPTIME=$(docker ps -f name="$CONTAINER_NAME" --format '{{.Status}}')
 
-            echo -e " STATUS:      ${GREEN}● ONLINE${NC}"
-            echo -e " UPTIME:      $UPTIME"
-            echo "──────────────────────────────────────────────────────"
-            printf " %-15s | %-15s \n" "RESOURCES" "TRAFFIC"
-            echo "──────────────────────────────────────────────────────"
-            printf " CPU: ${YELLOW}%-9s${NC} | Users: ${GREEN}%-9s${NC} \n" "$CPU" "$CONN"
-            printf " RAM: ${YELLOW}%-9s${NC} | Up:    ${CYAN}%-9s${NC} \n" "$RAM" "$UP"
-            printf "              | Down:  ${CYAN}%-9s${NC} \n" "$DOWN"
-            echo "══════════════════════════════════════════════════════"
-            echo -e "${YELLOW}Refreshing every 10 seconds...${NC}"
+            echo -e " STATUS: ${GREEN}● ONLINE${NC}${EL}"
+            echo -e " UPTIME: ${UPTIME}${EL}"
+            echo -e "──────────────────────────────────────────────────────${EL}"
+            printf " %-15s | %-15s %b\n" "RESOURCES" "TRAFFIC" "$EL"
+            echo -e "──────────────────────────────────────────────────────${EL}"
+            printf " CPU: ${YELLOW}%-9s${NC} | Users: ${GREEN}%-9s${NC} %b\n" "${CPU:-0%}" "${CONN:-0}" "$EL"
+            printf " RAM: ${YELLOW}%-18s${NC} | Up: ${CYAN}%-12s${NC} %b\n" "${RAM:-0MiB}" "${UP:-0B}" "$EL"
+            printf " %-22s | Down: ${CYAN}%-12s${NC} %b\n" "" "${DOWN:-0B}" "$EL"
+
+            echo -e "──────────────────────────────────────────────────────${EL}"
+            echo -e " ${BOLD}TOP COUNTRIES${NC} (peer IP count)${EL}"
+
+            if [ "$GEOIP_READY" -eq 1 ] && [ "${CONN:-0}" != "0" ]; then
+              NOW_TS="$(date +%s)"
+              # Refresh at most once per 60 seconds, async to keep UI responsive.
+              if [ $((NOW_TS - LAST_GEOIP_TS)) -ge 60 ]; then
+                if [ "$GEOIP_JOB_PID" -eq 0 ] || ! kill -0 "$GEOIP_JOB_PID" 2>/dev/null; then
+                  (
+                    get_top_countries > "${GEOIP_CACHE_FILE}.tmp" 2>/dev/null || true
+                    mv -f "${GEOIP_CACHE_FILE}.tmp" "$GEOIP_CACHE_FILE" 2>/dev/null || true
+                  ) &
+                  GEOIP_JOB_PID=$!
+                  LAST_GEOIP_TS="$NOW_TS"
+                fi
+              fi
+
+              if [ -s "$GEOIP_CACHE_FILE" ]; then
+                local i=0
+                while IFS=$'\t' read -r c name; do
+                  [ -n "${c:-}" ] || continue
+                  printf " %-28s %4s%b\n" "${name:-Unknown}" "$c" "$EL"
+                  i=$((i + 1))
+                done < "$GEOIP_CACHE_FILE"
+                while [ "$i" -lt 5 ]; do
+                  printf " %-28s %4s%b\n" "-" "-" "$EL"
+                  i=$((i + 1))
+                done
+              else
+                printf " %-28s %4s%b\n" "(updating...)" "" "$EL"
+                printf " %-28s %4s%b\n" "-" "-" "$EL"
+                printf " %-28s %4s%b\n" "-" "-" "$EL"
+                printf " %-28s %4s%b\n" "-" "-" "$EL"
+                printf " %-28s %4s%b\n" "-" "-" "$EL"
+              fi
+            else
+              printf " %-28s %4s%b\n" "(GeoIP pending or no users)" "" "$EL"
+              printf " %-28s %4s%b\n" "-" "-" "$EL"
+              printf " %-28s %4s%b\n" "-" "-" "$EL"
+              printf " %-28s %4s%b\n" "-" "-" "$EL"
+              printf " %-28s %4s%b\n" "-" "-" "$EL"
+            fi
+
+            echo -e "══════════════════════════════════════════════════════${EL}"
+            echo -e "${YELLOW}Refreshing every 10 seconds...${NC}${EL}"
         else
-            echo -e " STATUS:      ${RED}● OFFLINE${NC}"
-            echo "──────────────────────────────────────────────────────"
-            echo -e " Service is not running."
-            echo " Press 1 to Start."
-            echo "══════════════════════════════════════════════════════"
+            echo -e " STATUS: ${RED}● OFFLINE${NC}${EL}"
+            echo -e "──────────────────────────────────────────────────────${EL}"
+            echo -e " Service is not running.${EL}"
+            echo -e " Press 1 to Start.${EL}"
+            echo -e "══════════════════════════════════════════════════════${EL}"
         fi
 
-        sleep 10
+        tput ed 2>/dev/null || printf "\033[J"
+
+        for _ in $(seq 1 10); do
+          [ "$stop_dashboard" -eq 1 ] && break
+          sleep 1
+        done
     done
-    trap - SIGINT
+
+    if [ "$GEOIP_JOB_PID" -ne 0 ]; then
+      kill "$GEOIP_JOB_PID" 2>/dev/null || true
+    fi
+    echo -ne "\033[?25h"
+    tput rmcup 2>/dev/null || true
+    trap - SIGINT SIGTERM
 }
 
 view_logs() {
@@ -488,6 +768,8 @@ usage() {
     echo "  --start         Start/restart Conduit (same as no args)."
     echo "  --stop          Stop Conduit."
     echo "  --logs          Stream container logs."
+    echo "  --connections   Show current peer IPs (ephemeral)."
+    echo "  --countries     Show current peer countries (offline GeoIP)."
     echo "  --dashboard     Open live dashboard."
     echo "  --reconfigure   Reinstall with new max-clients/bandwidth."
     echo "  --yes, -y       Non-interactive (no prompts)."
@@ -512,6 +794,8 @@ menu_loop() {
     echo "  7. ⏹ Stop Conduit"
     echo "  8. 🔁 Restart Conduit"
     echo "  9. 🌍 Peers by country (see Linux manager)"
+    echo "  c. 🌐 Show peer IPs (connections)"
+    echo "  g. 🗺  Show peer countries (GeoIP)"
     echo ""
     echo "  h. 🩺 Health check    b. 💾 Backup node key    r. 📥 Restore node key"
     echo "  u. 🗑 Uninstall        v. ℹ Version"
@@ -530,6 +814,8 @@ menu_loop() {
       7) stop_service; [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; } ;;
       8) restart_only ;;
       9) peer_info_stub ;;
+      c|C) print_header; show_connections; [ -t 0 ] && { echo ""; read -n 1 -s -r -p "Press any key to return..." || true; } ;;
+      g|G) print_header; show_countries; [ -t 0 ] && { echo ""; read -n 1 -s -r -p "Press any key to return..." || true; } ;;
       h|H) health_check; [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; } ;;
       b|B) backup_key ;;
       r|R) restore_key ;;
@@ -555,6 +841,8 @@ while [ $# -gt 0 ]; do
     --start)   MODE="start"; shift ;;
     --stop)    MODE="stop"; shift ;;
     --logs)    MODE="logs"; shift ;;
+    --connections) MODE="connections"; shift ;;
+    --countries)   MODE="countries"; shift ;;
     --dashboard)   MODE="dashboard"; shift ;;
     --reconfigure) MODE="reconfigure"; shift ;;
     --yes|-y)  AUTO_YES=1; shift ;;
@@ -570,6 +858,8 @@ case "$MODE" in
   menu)        menu_loop ;;
   stop)        stop_service ;;
   logs)        view_logs ;;
+  connections) show_connections ;;
+  countries)   show_countries ;;
   dashboard)   view_dashboard ;;
   reconfigure) AUTO_YES=1; install_new ;;
   start|*)     AUTO_YES=1; start_noninteractive ;;
