@@ -16,7 +16,7 @@
 
 ### Mac operating system (macOS)
 
-**Option A: Docker**
+**Option A: Docker** — Run Conduit in a container using Docker Desktop; no building, includes the manager and dashboard.
 
 - **Step A.1** Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac).  
   [![Docker Desktop](https://www.docker.com/favicons/favicon-96x96.png)](https://www.docker.com/products/docker-desktop/)
@@ -25,7 +25,7 @@
   curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
   ```
 
-**Option B: Native**
+**Option B: Native** — Install the Conduit app from a DMG file; double-click to run, no Docker required.
 
 - **Step B.1** Download [Conduit.dmg](https://conduit.psiphon.ca/en/download).
 - **Step B.2** Double-click to mount, then drag **Conduit** to the Applications folder.
