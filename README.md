@@ -1,21 +1,14 @@
-# Conduit CLI
+<div align="center">
 
-**Help Iranians access the open internet by running a volunteer proxy node**
+# **Conduit** · **Snowflake** · **Xray** CLI
 
-Conduit is a volunteer proxy that helps people in Iran access the open internet. You can also run **Snowflake** (Tor proxy) and **Xray** (VLESS/VMess/REALITY) alongside Conduit.
+### Help Iranians access the open internet by running volunteer proxy nodes
 
----
+**Conduit** — Psiphon volunteer proxy  
+**Snowflake** — Tor proxy  
+**Xray** — VLESS / VMess / REALITY
 
-## 📚 Documentation
-
-**📖 [View HTML Documentation](docs/index.html)** - Beautiful web-based guides with step-by-step instructions
-
-- [Quick Start](docs/quickstart.html)
-- [Installation Guide](docs/install.html)
-- [Setup Guide](docs/setup.html)
-- [Usage Guide](docs/usage.html)
-- [Snowflake Guide](docs/snowflake.html)
-- [Xray Guide](docs/xray.html)
+</div>
 
 ---
 
@@ -23,26 +16,18 @@ Conduit is a volunteer proxy that helps people in Iran access the open internet.
 
 ### macOS
 
-**Option 1: Docker Manager (Easiest - Recommended)**
+**Docker**
 ```bash
 curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
 ```
-✅ No building required · Beautiful dashboard · Backup/restore · Auto-updates
+No building · Dashboard · Backup/restore · Auto-updates
 
-**Option 2: Download DMG**
+**Native**
 1. Download `Conduit.dmg`
-2. Double-click to mount
-3. Drag "Conduit" to Applications
-4. Double-click **"Start Conduit.command"**
+2. Double-click to mount, drag "Conduit" to Applications
+3. Double-click **"Start Conduit.command"**
 
-**Option 3: Build from Source**
-```bash
-git clone https://github.com/farrox/conduit_emergency.git
-cd conduit_emergency
-./scripts/easy-setup.sh
-```
-
-📖 [Detailed Mac Installation Guide](docs/markdown/INSTALL_MAC.md)
+📖 [Mac Installation Guide](docs/markdown/INSTALL_MAC.md)
 
 ---
 
@@ -73,6 +58,8 @@ For now, Windows users can:
 - Use Docker Desktop and follow the Docker instructions
 
 📖 [Windows Guide](docs/markdown/INSTALL-GO.md) (WSL2 setup)
+
+📖 **Documentation:** [HTML docs](docs/index.html) · [Quick Start](docs/quickstart.html) · [Snowflake](docs/snowflake.html) · [Xray](docs/xray.html)
 
 ---
 
