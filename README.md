@@ -145,13 +145,22 @@ You need a `psiphon_config.json` file. Create this file in the **repo root** (th
 
 **Where to get this config:**
 
-**Mac (easiest):** Extract from the iOS Psiphon app
+**Mac:** Extract from the iOS Psiphon app (if you have Xcode/iOS development setup)
 ```bash
 ./scripts/extract-ios-config.sh
 ```
-This automatically finds and copies the config from your iOS Simulator or Xcode build.
 
-**Linux/Windows:** Email Psiphon at `info@psiphon.ca` with subject "Request for Conduit CLI Configuration" — they'll send you the complete config file.
+**Windows:** Extract from the Psiphon Windows GUI app (if you have it installed)
+```powershell
+.\scripts\extract-windows-config.ps1
+```
+
+**Linux:** Extract from the Psiphon Linux GUI app (if you have it installed)
+```bash
+./scripts/extract-linux-config.sh
+```
+
+**Don't have the GUI app?** Email Psiphon at `info@psiphon.ca` with subject "Request for Conduit CLI Configuration" — they'll send you the complete config file.
 
 **Then save it:**
 - **Mac:** Use **TextEdit** (Format → Make Plain Text), paste the config, save as `psiphon_config.json`
