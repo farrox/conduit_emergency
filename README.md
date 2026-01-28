@@ -110,7 +110,14 @@
 
 ## 📋 Before You Start
 
-You need a `psiphon_config.json` file. Create this file in the repo root:
+You need a `psiphon_config.json` file. Create this file in the **repo root** (the main folder where you cloned the repo):
+
+**Example paths:**
+- **Mac:** `/Users/yourname/Conduit-Snowflakes-and-X-ray-servers/psiphon_config.json`
+- **Linux:** `/home/yourname/Conduit-Snowflakes-and-X-ray-servers/psiphon_config.json`
+- **Windows:** `C:\Users\yourname\Conduit-Snowflakes-and-X-ray-servers\psiphon_config.json`
+
+**File contents:**
 
 ```json
 {
