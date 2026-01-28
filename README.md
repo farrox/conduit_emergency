@@ -72,11 +72,11 @@
 
 - **Step A.1** Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows).  
   [![Docker Desktop](https://www.docker.com/favicons/favicon-96x96.png)](https://www.docker.com/products/docker-desktop/)
-- **Step A.2** Open **PowerShell** or **WSL2** (Windows Subsystem for Linux), then run:
+- **Step A.2** Open **WSL2** (Windows Subsystem for Linux — a Linux terminal on Windows), then run:
   ```bash
   curl -sL https://raw.githubusercontent.com/farrox/Conduit-Snowflakes-and-X-ray-servers/main/scripts/conduit-manager-mac.sh | bash
   ```
-  (The script works on Windows with Docker Desktop)
+  Don't have WSL2? [Install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) or use Option B (native binary) below.
 
 **Option B: Native** — Build the Windows binary from source (requires Go 1.24.x).
 
