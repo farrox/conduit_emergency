@@ -162,84 +162,49 @@ This automatically finds and copies the config from your iOS Simulator or Xcode 
 
 ---
 
-## 📊 Dashboard
+## ❄️ Snowflake Setup
 
-View live stats (CPU, RAM, connected users, traffic):
+Run a **Tor Snowflake proxy** alongside Conduit to help more people bypass censorship.
 
+**Docker (one command):**
 ```bash
-./scripts/dashboard.sh
+docker run -d --name snowflake --restart unless-stopped thetorproject/snowflake-proxy:latest
 ```
 
-📖 [Dashboard Guide](docs/markdown/DASHBOARD.md)
-
----
-
-## ⚙️ Configuration
-
-**Auto-configure optimal settings:**
+**From source:**
 ```bash
-./scripts/configure-optimal.sh
+git clone https://gitlab.torproject.org/tpo/anti-censorship/docker-snowflake-proxy.git
+cd docker-snowflake-proxy
+docker compose up -d
 ```
 
-📖 [Configuration Guide](docs/markdown/CONFIG_OPTIMAL.md) · [All Documentation](docs/markdown/)
+📖 [Snowflake Guide](docs/snowflake.html) · [Markdown Guide](docs/markdown/SNOWFLAKE_WHERE_TO_START.md)
 
 ---
 
-## 🐳 Docker
+## 🔷 Xray Setup
 
-**Quick Start:**
+Run an **Xray server** (VLESS/VMess/REALITY protocols) alongside Conduit for additional censorship resistance.
+
+**Docker (one command):**
 ```bash
-docker build -t conduit --build-arg PSIPHON_CONFIG=psiphon_config.json -f Dockerfile.embedded .
-docker run -d --name conduit -v conduit-data:/home/conduit/data --restart unless-stopped conduit
+docker run -d --name xray --restart unless-stopped -v ./xray-config.json:/etc/xray/config.json teddysun/xray
 ```
 
-**Mac Docker Manager:**
-```bash
-./scripts/conduit-manager-mac.sh --menu
-```
+**Requires:** `xray-config.json` file ([example config](https://github.com/XTLS/Xray-examples))
 
-📖 [Docker Manager Guide](docs/markdown/CONDUIT_MANAGER_MAC.md)
+📖 [Xray Guide](docs/xray.html) · [Markdown Guide](docs/markdown/XRAY_WHERE_TO_START.md)
 
 ---
 
-## ☁️ Cloud Deployment
+## 📚 Documentation
 
-Deploy to DigitalOcean, Linode, Hetzner, AWS, Google Cloud, or Azure:
-
-📖 [Cloud Deployment Guide](docs/markdown/DEPLOY_CLOUD.md) · [Deployment Checklist](docs/reference/DEPLOY_TODO.md)
-
----
-
-## 🔒 Security
-
-By default, Conduit accepts connections from anywhere. To restrict traffic to specific regions:
-
-📖 [Security & Firewall Guide](docs/markdown/SECURITY_FIREWALL.md)
-
----
-
-## 📚 More Documentation
-
-### Getting Started
-- [Quick Start for Mac](docs/markdown/QUICKSTART_MAC.md)
-- [Installation Guide](docs/markdown/INSTALL_MAC.md)
-- [Get Config Guide](docs/markdown/GET_CONFIG.md)
-
-### Configuration
-- [Optimal Configuration](docs/markdown/CONFIG_OPTIMAL.md)
-- [Dashboard Guide](docs/markdown/DASHBOARD.md)
-- [Security & Firewall](docs/markdown/SECURITY_FIREWALL.md)
-
-### Run Alongside Conduit
-- [Snowflake Guide](docs/markdown/SNOWFLAKE_WHERE_TO_START.md) - Tor Snowflake proxy
-- [Xray Guide](docs/markdown/XRAY_WHERE_TO_START.md) - VLESS/VMess/REALITY server
-
-### Deployment
-- [Cloud Deployment](docs/markdown/DEPLOY_CLOUD.md)
-- [Deployment Checklist](docs/reference/DEPLOY_TODO.md)
-
-### HTML Documentation
-- [HTML Docs](docs/index.html) - Beautiful web-based documentation
+- **[HTML Docs](docs/index.html)** - Beautiful web-based guides
+- **[Dashboard Guide](docs/markdown/DASHBOARD.md)** - Live stats in terminal
+- **[Cloud Deployment](docs/markdown/DEPLOY_CLOUD.md)** - Deploy to VPS
+- **[Security & Firewall](docs/markdown/SECURITY_FIREWALL.md)** - Restrict traffic to Iran
+- **[Optimal Configuration](docs/markdown/CONFIG_OPTIMAL.md)** - Auto-calculate best settings
+- **[All Guides](docs/markdown/)** - Complete documentation
 
 ---
 
