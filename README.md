@@ -16,7 +16,10 @@
 
 ### macOS
 
-**Docker**
+**Docker**  
+[![Docker Desktop](https://www.docker.com/favicons/favicon-96x96.png)](https://www.docker.com/products/docker-desktop/)  
+[**Download Docker Desktop**](https://www.docker.com/products/docker-desktop/) (Mac, Windows, Linux)
+
 ```bash
 curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
 ```
