@@ -25,18 +25,15 @@
   curl -sL https://raw.githubusercontent.com/farrox/Conduit-Snowflakes-and-X-ray-servers/main/scripts/conduit-manager-mac.sh | bash
   ```
 
-**Option B: Native** — Install the Conduit binary from a DMG file; run it from the command line, no Docker required.
+**Option B: Native** — Install the Conduit binary from a DMG file; run from the CLI with the **terminal dashboard** (live stats in the terminal), no Docker required.
 
 - **Step B.1** Download [Conduit.dmg](https://conduit.psiphon.ca/en/download).
 - **Step B.2** Double-click the DMG to mount it, then drag **Conduit** to the Applications folder (so the binary is at `/Applications/Conduit`).
 
   <img src="resources/drag.png" alt="Drag Conduit to Applications" width="400">
 
-- **Step B.3** In **Terminal**, run Conduit:
-  ```bash
-  /Applications/Conduit start
-  ```
-  Add `-v` for verbose output. To run with the live dashboard instead, open the mounted DMG (or the Conduit folder in Applications) and double-click **"Start Conduit.command"**.
+- **Step B.3** Start Conduit with the **terminal dashboard** (default): open the Conduit DMG and double-click **"Start Conduit.command"**. A Terminal window opens with the live dashboard (CPU, RAM, users, traffic). Press Ctrl+C to stop.  
+  **CLI only** (no dashboard): in Terminal run `/Applications/Conduit start` (add `-v` for verbose).
 
 📖 [Mac Installation Guide](docs/markdown/INSTALL_MAC.md)
 
