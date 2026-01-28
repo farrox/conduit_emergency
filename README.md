@@ -32,7 +32,7 @@
 
   <img src="resources/drag.png" alt="Drag Conduit to Applications" width="400">
 
-- **Step B.3** Double-click **"Start Conduit.command"**.
+- **Step B.3** To start Conduit: open **Applications** in Finder → open the **Conduit** folder you installed → double-click **"Start Conduit.command"**. A Terminal window and live dashboard will open.
 
 📖 [Mac Installation Guide](docs/markdown/INSTALL_MAC.md)
 
