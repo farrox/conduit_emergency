@@ -110,14 +110,27 @@
 
 ## 📋 Before You Start
 
-You need a `psiphon_config.json` file with network credentials:
+You need a `psiphon_config.json` file. Create this file in the repo root:
 
-1. **Email Psiphon:** `info@psiphon.ca` with subject "Request for Conduit CLI Configuration"
-2. **Or extract from iOS app:** Run `./scripts/extract-ios-config.sh` if you have the Psiphon iOS app
+```json
+{
+    "PropagationChannelId": "YOUR_CHANNEL_ID_HERE",
+    "SponsorId": "YOUR_SPONSOR_ID_HERE",
+    "AdditionalParameters": {
+        "YOUR_BASE64_ENCRYPTED_BROKER_CONFIG_HERE"
+    }
+}
+```
 
-📖 [Full Config Guide](docs/markdown/GET_CONFIG.md)
+**What to change:**
+- Replace `YOUR_CHANNEL_ID_HERE` with your Psiphon channel ID
+- Replace `YOUR_SPONSOR_ID_HERE` with your Psiphon sponsor ID  
+- Replace the `AdditionalParameters` content with your encrypted broker configuration
 
-Once you have the config, follow the installation steps above.
+**Where to get these values:**  
+📧 **Email Psiphon** at `info@psiphon.ca` with subject "Request for Conduit CLI Configuration"
+
+📖 [Other ways to get config](docs/markdown/GET_CONFIG.md) (extract from iOS app, etc.)
 
 ---
 
