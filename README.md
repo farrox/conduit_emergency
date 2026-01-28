@@ -68,10 +68,27 @@
 
 ### Windows operating system
 
-- **Step A.1** Native Windows support is coming soon.
-- **Step A.2** For now: use **WSL2** and follow the Linux steps above, or install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and follow **Option A** (Step A.1, Step A.2) under Mac.
+**Option A: Docker** — Same as Mac Docker (Step A.1, Step A.2). Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) for Windows, then run the manager script.
 
-📖 [Windows / WSL2 Guide](docs/markdown/INSTALL-GO.md)
+**Option B: Native** — Build the Windows binary from source (requires Go 1.24.x).
+
+- **Step B.1** Clone this repo:
+  ```bash
+  git clone https://github.com/farrox/Conduit-Snowflakes-and-X-ray-servers.git
+  cd Conduit-Snowflakes-and-X-ray-servers
+  ```
+- **Step B.2** Build for Windows:
+  ```bash
+  make setup
+  make build-windows
+  ```
+  Binary will be at `dist/conduit-windows-amd64.exe`
+- **Step B.3** Run in PowerShell or Command Prompt:
+  ```powershell
+  .\dist\conduit-windows-amd64.exe start --psiphon-config .\psiphon_config.json -v
+  ```
+
+📖 For firewall rules to restrict traffic to Iran: [Iran Conduit Firewall](https://github.com/SamNet-dev/iran-conduit-firewall)
 
 📖 **Documentation:** [HTML docs](docs/index.html) · [Quick Start](docs/quickstart.html) · [Snowflake](docs/snowflake.html) · [Xray](docs/xray.html)
 
