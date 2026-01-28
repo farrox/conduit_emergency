@@ -14,34 +14,36 @@
 
 ## 🚀 Installation
 
-### macOS
+### Mac operating system (macOS)
 
-**A. Docker**
+**Option A: Docker**
 
-- **A.1** Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac).  
+- **Step A.1** Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac).  
   [![Docker Desktop](https://www.docker.com/favicons/favicon-96x96.png)](https://www.docker.com/products/docker-desktop/)
-- **A.2** In Terminal, run:
+- **Step A.2** In Terminal, run:
   ```bash
   curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/conduit-manager-mac.sh | bash
   ```
 
-**B. Native**
+**Option B: Native**
 
-- **B.1** Download [Conduit.dmg](https://conduit.psiphon.ca/en/download).
-- **B.2** Double-click to mount, then drag **Conduit** to Applications.
-- **B.3** Double-click **"Start Conduit.command"**.
+- **Step B.1** Download [Conduit.dmg](https://conduit.psiphon.ca/en/download).
+- **Step B.2** Double-click to mount, then drag **Conduit** to Applications.
+- **Step B.3** Double-click **"Start Conduit.command"**.
 
 📖 [Mac Installation Guide](docs/markdown/INSTALL_MAC.md)
 
 ---
 
-### Linux
+### Linux operating system
 
-- **A.1** One-command install (run in terminal):
+**Option A: One-command install**
+
+- **Step A.1** In a terminal, run:
   ```bash
   curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/install-linux.sh | sudo bash
   ```
-- **A.2** (Optional) With custom settings:
+- **Step A.2** (Optional) With custom settings:
   ```bash
   curl -sL https://raw.githubusercontent.com/farrox/conduit_emergency/main/scripts/install-linux.sh | MAX_CLIENTS=500 BANDWIDTH=10 sudo bash
   ```
@@ -50,10 +52,10 @@
 
 ---
 
-### Windows
+### Windows operating system
 
-- **A.1** Native Windows support is coming soon.
-- **A.2** For now: use **WSL2** and follow the Linux steps above, or install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and follow the Mac Docker steps (A.1, A.2).
+- **Step A.1** Native Windows support is coming soon.
+- **Step A.2** For now: use **WSL2** and follow the Linux steps above, or install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and follow **Option A** (Step A.1, Step A.2) under Mac.
 
 📖 [Windows / WSL2 Guide](docs/markdown/INSTALL-GO.md)
 
