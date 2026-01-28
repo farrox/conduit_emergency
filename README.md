@@ -27,7 +27,7 @@
 
 **B. Native**
 
-- **B.1** Download `Conduit.dmg`.
+- **B.1** Download [Conduit.dmg](https://conduit.psiphon.ca/en/download).
 - **B.2** Double-click to mount, then drag **Conduit** to Applications.
 - **B.3** Double-click **"Start Conduit.command"**.
 
