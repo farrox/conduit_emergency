@@ -403,15 +403,160 @@ restart_only() {
 }
 
 peer_info_stub() {
-    echo -e "${CYAN}Live peers by country${NC}"
-    echo ""
-    echo "Peer-by-country (GeoIP) is supported in the Linux conduit-manager:"
-    echo "  https://github.com/SamNet-dev/conduit-manager"
-    echo ""
-    echo "On macOS you can watch traffic with:"
-    echo "  tail -f $LOG_FILE | grep STATS"
-    echo ""
-    [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+    show_live_peers_native
+}
+
+# GeoIP database paths (common locations)
+GEOIP_DB_DIR="${HOME}/.conduit-mac/geoip"
+GEOIP_DB_PATH="${GEOIP_DB_DIR}/dbip-country-lite.mmdb"
+
+ensure_geoip_db_native() {
+    if [ -f "$GEOIP_DB_PATH" ]; then
+        return 0
+    fi
+    
+    mkdir -p "$GEOIP_DB_DIR"
+    local ym
+    ym="$(date +%Y-%m)"
+    local url="https://download.db-ip.com/free/dbip-country-lite-${ym}.mmdb.gz"
+    local gz="${GEOIP_DB_PATH}.gz"
+    
+    log_info "Downloading GeoIP database..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$url" -o "$gz" 2>/dev/null || return 1
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$gz" "$url" 2>/dev/null || return 1
+    else
+        log_err "curl or wget required for GeoIP download"
+        return 1
+    fi
+    
+    gunzip -f "$gz" 2>/dev/null || return 1
+    log_info "GeoIP database ready (DB-IP.com CC BY 4.0)"
+    return 0
+}
+
+get_native_peer_ips() {
+    local pid
+    pid=$(find_pid)
+    [ -z "$pid" ] && return 1
+    
+    # Use lsof to find established TCP connections for the Conduit process
+    lsof -nP -iTCP -sTCP:ESTABLISHED -a -p "$pid" 2>/dev/null | \
+        awk 'NR>1 && $9 ~ /->/ {
+            split($9, a, "->")
+            split(a[2], b, ":")
+            print b[1]
+        }' | grep -v "^127\." | grep -v "^::1" | sort -u
+}
+
+show_live_peers_native() {
+    local pid
+    pid=$(find_pid)
+    if [ -z "$pid" ]; then
+        print_header
+        log_err "Conduit is not running. Start it first."
+        [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+        return 1
+    fi
+    
+    # Check if Python3 and geoip2 are available
+    if ! command -v python3 &>/dev/null; then
+        print_header
+        log_err "Python3 is required for GeoIP lookups."
+        echo ""
+        echo "Install with: brew install python3"
+        echo "Then install geoip2: pip3 install geoip2"
+        [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+        return 1
+    fi
+    
+    if ! python3 -c "import geoip2.database" 2>/dev/null; then
+        print_header
+        log_err "Python geoip2 library is required."
+        echo ""
+        echo "Install with: pip3 install geoip2"
+        [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+        return 1
+    fi
+    
+    ensure_geoip_db_native || {
+        log_err "Failed to download GeoIP database."
+        [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+        return 1
+    fi
+    
+    trap "echo ''; return 0" SIGINT
+    
+    while true; do
+        print_header
+        echo -e "${BOLD}LIVE PEER TRAFFIC BY COUNTRY${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)"
+        echo "══════════════════════════════════════════════════════════════════════"
+        echo ""
+        
+        local peer_data
+        peer_data=$(get_native_peer_ips | python3 -c "
+import sys
+from collections import Counter
+import geoip2.database
+import geoip2.errors
+
+ips = [line.strip() for line in sys.stdin if line.strip()]
+counts = Counter()
+ip_counts = {}
+
+try:
+    with geoip2.database.Reader('$GEOIP_DB_PATH') as reader:
+        for ip in ips:
+            try:
+                resp = reader.country(ip)
+                country = resp.country.name or resp.country.iso_code or 'Unknown'
+                counts[country] += 1
+                if country not in ip_counts:
+                    ip_counts[country] = 1
+                else:
+                    ip_counts[country] += 1
+            except Exception:
+                counts['Unknown'] += 1
+
+    # Sort by connection count (descending)
+    sorted_countries = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+    # Print header
+    print(f\"{'Country':<30} {'Connections':>12} {'IPs':>8}\")
+    print('-' * 52)
+
+    # Print data
+    for country, count in sorted_countries[:20]:  # Top 20
+        ip_count = ip_counts.get(country, 0)
+        print(f\"{country:<30} {count:>12} {ip_count:>8}\")
+
+    total = sum(counts.values())
+    total_countries = len(counts)
+    if total > 0:
+        print('-' * 52)
+        print(f\"{'TOTAL':<30} {total:>12} {len(set(ips)):>8}\")
+        print(f\"\nConnections from {total_countries} countries\")
+except Exception as e:
+    print(f\"Error: {e}\")
+" 2>/dev/null || echo "No data available")
+        
+        if [ -n "$peer_data" ] && [ "$peer_data" != "No data available" ]; then
+            echo "$peer_data"
+        else
+            echo "No active connections detected."
+            echo ""
+            echo "NOTE: This shows TCP connections established by the Conduit process."
+            echo "      Connections may take a few minutes to appear after startup."
+        fi
+        
+        echo ""
+        echo "══════════════════════════════════════════════════════════════════════"
+        echo -e "${YELLOW}Refreshing every 10 seconds...${NC}"
+        sleep 10
+    done
+    
+    trap - SIGINT
 }
 
 usage() {
@@ -444,7 +589,7 @@ menu_loop() {
         echo "  6. ▶ Start Conduit"
         echo "  7. ⏹ Stop Conduit"
         echo "  8. 🔁 Restart Conduit"
-        echo "  9. 🌍 Peers by country (see Linux manager)"
+        echo "  9. 🌍 Live peers by country (GeoIP)"
         echo ""
         echo "  h. 🩺 Health check    b. 💾 Backup node key    r. 📥 Restore node key"
         echo "  u. 🗑 Uninstall        v. ℹ Version"

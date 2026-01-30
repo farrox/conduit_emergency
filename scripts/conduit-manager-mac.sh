@@ -32,6 +32,7 @@ BACKUP_DIR="${HOME}/.conduit-mac/backups"
 
 # State dir for optional tooling (GeoIP DB, caches, etc.)
 STATE_DIR="${HOME}/.conduit-mac"
+GEOIP_CACHE_DIR="${STATE_DIR}/geoip-cache"
 
 # Optional: Peer IP and GeoIP tooling (runs OUTSIDE the Conduit container)
 INSPECTOR_IMAGE="${CONDUIT_INSPECTOR_IMAGE:-nicolaka/netshoot:latest}"
@@ -749,15 +750,82 @@ restart_only() {
 
 # Peers-by-country needs tcpdump + geoiplookup; Linux conduit-manager has full support
 peer_info_stub() {
-    echo -e "${CYAN}Live peers by country${NC}"
-    echo ""
-    echo "Peer-by-country (GeoIP) is supported in the Linux conduit-manager:"
-    echo "  https://github.com/SamNet-dev/conduit-manager"
-    echo ""
-    echo "On macOS you can watch traffic with:"
-    echo "  docker logs -f $CONTAINER_NAME 2>&1 | grep STATS"
-    echo ""
-    [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }
+    show_live_peers_by_country
+}
+
+show_live_peers_by_country() {
+    ensure_container_running || { [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }; return 1; }
+    ensure_geoip_inspector_image >/dev/null 2>&1 || { log_err "Failed to prepare GeoIP tools."; [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }; return 1; }
+    ensure_geoip_db >/dev/null 2>&1 || { log_err "Failed to download GeoIP DB."; [ -t 0 ] && { read -n 1 -s -r -p "Press any key to return..." || true; }; return 1; }
+    
+    trap "echo ''; return 0" SIGINT
+    
+    while true; do
+        print_header
+        echo -e "${BOLD}LIVE PEER TRAFFIC BY COUNTRY${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)"
+        echo "══════════════════════════════════════════════════════════════════════"
+        echo ""
+        
+        # Get peer IPs and resolve to countries with counts
+        local peer_data
+        peer_data=$(get_peer_ips 2>/dev/null | \
+            docker run --rm -i -v "${GEOIP_DB_PATH}:/db.mmdb:ro" "$GEOIP_INSPECTOR_IMAGE" \
+            python3 -c '
+import sys
+from collections import Counter
+import geoip2.database
+import geoip2.errors
+
+ips = [line.strip() for line in sys.stdin if line.strip()]
+counts = Counter()
+ip_counts = {}
+
+with geoip2.database.Reader("/db.mmdb") as reader:
+    for ip in ips:
+        try:
+            resp = reader.country(ip)
+            country = resp.country.name or resp.country.iso_code or "Unknown"
+            counts[country] += 1
+            if country not in ip_counts:
+                ip_counts[country] = 1
+            else:
+                ip_counts[country] += 1
+        except Exception:
+            counts["Unknown"] += 1
+
+# Sort by connection count (descending)
+sorted_countries = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+# Print header
+print(f"{'Country':<30} {'Connections':>12} {'IPs':>8}")
+print("-" * 52)
+
+# Print data
+for country, count in sorted_countries[:20]:  # Top 20
+    ip_count = ip_counts.get(country, 0)
+    print(f"{country:<30} {count:>12} {ip_count:>8}")
+
+total = sum(counts.values())
+total_countries = len(counts)
+if total > 0:
+    print("-" * 52)
+    print(f"{'TOTAL':<30} {total:>12} {len(set(ips)):>8}")
+    print(f"\nConnections from {total_countries} countries")
+' 2>/dev/null || echo "No data available")
+        
+        if [ -n "$peer_data" ] && [ "$peer_data" != "No data available" ]; then
+            echo "$peer_data"
+        else
+            echo "No active connections or GeoIP lookup failed."
+            echo ""
+            echo "NOTE: This requires active connections to Conduit."
+        fi
+        
+        echo ""
+        echo "══════════════════════════════════════════════════════════════════════"
+        echo -e "${YELLOW}Refreshing every 10 seconds...${NC}"
+        sleep 10
+    done
 }
 
 usage() {
@@ -793,7 +861,7 @@ menu_loop() {
     echo "  6. ▶ Start Conduit"
     echo "  7. ⏹ Stop Conduit"
     echo "  8. 🔁 Restart Conduit"
-    echo "  9. 🌍 Peers by country (see Linux manager)"
+    echo "  9. 🌍 Live peers by country (GeoIP)"
     echo "  c. 🌐 Show peer IPs (connections)"
     echo "  g. 🗺  Show peer countries (GeoIP)"
     echo ""
